@@ -1,0 +1,304 @@
+/* ================================================
+   BPD BANK - DASHBOARD GREEN THEME
+   Universal CSS Override untuk ganti Biru → Hijau
+   ================================================ */
+
+:root {
+    /* Dark Green Theme - Sama dengan Login */
+    --primary-green: #0F5132;
+    --primary-green-hover: #0A3D24;
+    --primary-green-light: #1B6B47;
+    --primary-green-lighter: #D1FAE5;
+    --primary-green-dark: #064E3B;
+}
+
+/* ================================================
+   1. SIDEBAR
+   ================================================ */
+
+/* Sidebar Active Menu Item */
+.bg-blue-600,
+.bg-blue-700,
+.bg-blue-500,
+[class*="bg-blue"] {
+    background-color: var(--primary-green) !important;
+}
+
+/* Sidebar Hover */
+.hover\:bg-blue-600:hover,
+.hover\:bg-blue-700:hover,
+.hover\:bg-blue-500:hover,
+.hover\:bg-gray-700:hover {
+    background-color: var(--primary-green-hover) !important;
+}
+
+/* Active Menu Text Color */
+.text-blue-600,
+.text-blue-700,
+.text-blue-500 {
+    color: var(--primary-green) !important;
+}
+
+/* Active Menu Border/Indicator */
+.border-blue-600,
+.border-blue-700,
+.border-blue-500 {
+    border-color: var(--primary-green) !important;
+}
+
+/* ================================================
+   2. BUTTONS
+   ================================================ */
+
+/* Primary Button */
+button.bg-blue-600,
+button.bg-blue-700,
+button.bg-blue-500,
+.btn-primary,
+[type="submit"].bg-blue-600 {
+    background-color: var(--primary-green) !important;
+}
+
+button.bg-blue-600:hover,
+button.bg-blue-700:hover,
+button.bg-blue-500:hover,
+.btn-primary:hover {
+    background-color: var(--primary-green-hover) !important;
+}
+
+/* Button Focus */
+button:focus,
+.focus\:bg-blue-700:focus {
+    background-color: var(--primary-green-hover) !important;
+    --tw-ring-color: var(--primary-green-light) !important;
+}
+
+/* ================================================
+   3. LINKS & TEXT
+   ================================================ */
+
+/* Link Color */
+a.text-blue-600,
+a.text-blue-700,
+a.text-blue-500 {
+    color: var(--primary-green) !important;
+}
+
+a.text-blue-600:hover,
+a.text-blue-700:hover,
+a.text-blue-500:hover {
+    color: var(--primary-green-hover) !important;
+}
+
+/* ================================================
+   4. FORMS & INPUTS
+   ================================================ */
+
+/* Input Focus Ring */
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--primary-green) !important;
+    --tw-ring-color: var(--primary-green-light) !important;
+}
+
+/* Checkbox & Radio */
+input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+    background-color: var(--primary-green) !important;
+    border-color: var(--primary-green) !important;
+}
+
+input[type="checkbox"]:focus,
+input[type="radio"]:focus {
+    --tw-ring-color: var(--primary-green-light) !important;
+}
+
+/* ================================================
+   5. BADGES & ALERTS
+   ================================================ */
+
+/* Badge Primary */
+.bg-blue-100 {
+    background-color: var(--primary-green-lighter) !important;
+}
+
+.text-blue-800 {
+    color: var(--primary-green-dark) !important;
+}
+
+/* Alert Info (biru) → Hijau */
+.border-blue-400 {
+    border-color: var(--primary-green-light) !important;
+}
+
+.bg-blue-50 {
+    background-color: #ECFDF5 !important; /* Green 50 */
+}
+
+/* ================================================
+   6. PROGRESS BARS
+   ================================================ */
+
+.bg-blue-600[role="progressbar"],
+.progress-bar {
+    background-color: var(--primary-green) !important;
+}
+
+/* ================================================
+   7. TABS & NAVIGATION
+   ================================================ */
+
+/* Active Tab */
+.border-b-2.border-blue-600,
+.border-blue-500 {
+    border-color: var(--primary-green) !important;
+}
+
+/* Tab Hover */
+.hover\:border-blue-600:hover {
+    border-color: var(--primary-green-light) !important;
+}
+
+/* ================================================
+   8. ICONS & SVG
+   ================================================ */
+
+/* Icon Color */
+.text-blue-600 svg,
+.text-blue-500 svg {
+    color: var(--primary-green) !important;
+}
+
+/* ================================================
+   9. CARDS & CONTAINERS
+   ================================================ */
+
+/* Card Header Biru */
+.bg-blue-600.rounded-t-lg,
+.card-header {
+    background-color: var(--primary-green) !important;
+}
+
+/* Card Border */
+.border-l-4.border-blue-600 {
+    border-left-color: var(--primary-green) !important;
+}
+
+/* ================================================
+   10. HOVER EFFECTS & TRANSITIONS
+   ================================================ */
+
+/* Smooth Transitions */
+button, a, input, .sidebar-item {
+    transition: all 0.3s ease;
+}
+
+/* Button Hover Effect */
+button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(15, 81, 50, 0.2);
+}
+
+/* ================================================
+   11. CUSTOM CLASSES (Jika ada)
+   ================================================ */
+
+/* Class custom yang mungkin kamu pakai */
+.btn-blue,
+.bg-primary {
+    background-color: var(--primary-green) !important;
+}
+
+.btn-blue:hover,
+.bg-primary:hover {
+    background-color: var(--primary-green-hover) !important;
+}
+
+.text-primary {
+    color: var(--primary-green) !important;
+}
+
+.border-primary {
+    border-color: var(--primary-green) !important;
+}
+
+/* ================================================
+   12. RING COLORS (Focus Outline)
+   ================================================ */
+
+.ring-blue-500,
+.ring-blue-600,
+.focus\:ring-blue-500:focus,
+.focus\:ring-blue-600:focus {
+    --tw-ring-color: var(--primary-green-light) !important;
+}
+
+/* ================================================
+   13. DROPDOWN & MENUS
+   ================================================ */
+
+/* Dropdown Active Item */
+.dropdown-item.active,
+.menu-item.active {
+    background-color: var(--primary-green-lighter) !important;
+    color: var(--primary-green-dark) !important;
+}
+
+/* Dropdown Hover */
+.dropdown-item:hover,
+.menu-item:hover {
+    background-color: rgba(15, 81, 50, 0.1) !important;
+}
+
+/* ================================================
+   14. TABLE (Jika ada)
+   ================================================ */
+
+/* Table Header */
+thead.bg-blue-600,
+th.bg-blue-600 {
+    background-color: var(--primary-green) !important;
+}
+
+/* Table Row Hover */
+tr:hover {
+    background-color: rgba(15, 81, 50, 0.05) !important;
+}
+
+/* ================================================
+   15. SPECIFIC OVERRIDES
+   ================================================ */
+
+/* Override semua class yang contain 'blue' dengan 'green' */
+[class*="bg-blue"]:not(.bg-blue-50):not(.bg-blue-100) {
+    background-color: var(--primary-green) !important;
+}
+
+[class*="text-blue"]:not(.text-blue-50):not(.text-blue-100) {
+    color: var(--primary-green) !important;
+}
+
+[class*="border-blue"]:not(.border-blue-50):not(.border-blue-100) {
+    border-color: var(--primary-green) !important;
+}
+
+/* ================================================
+   NOTES & CUSTOMIZATION
+   ================================================
+   
+   🔧 CARA PAKAI:
+   1. Taruh CSS ini di file app.blade.php dalam <style> tag
+   2. Atau simpan di public/css/dashboard-green.css
+   3. Link di head: <link rel="stylesheet" href="{{ asset('css/dashboard-green.css') }}">
+   
+   🎨 GANTI WARNA:
+   Edit variable di :root jika mau warna hijau berbeda
+   
+   ⚠️ TROUBLESHOOTING:
+   Jika ada warna yang masih biru:
+   1. Inspect element (F12)
+   2. Lihat class name yang dipakai
+   3. Tambahkan override spesifik di sini
+   
+   ================================================ */

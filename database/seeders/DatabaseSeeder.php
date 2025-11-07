@@ -13,11 +13,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // Urutan PENTING! Parent dulu, baru child
+        $this->call([
+            DivisionSeeder::class,   // 1. Division dulu (parent)
+            TestingDataSeeder::class,   // Then seed testing data
+            UserSeeder::class,       // 2. User kedua (parent)
+            ProjectSeeder::class,    // 3. Project ketiga (butuh Division & User)
+            ActivitySeeder::class,   // 4. Activity terakhir (butuh Project & User)
         ]);
     }
 }
