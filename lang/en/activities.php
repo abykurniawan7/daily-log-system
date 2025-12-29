@@ -237,4 +237,33 @@ return [
     'select_activity_type' => 'Select Activity Type',
     'others' => 'Others',
     'enter_other_type' => 'Enter other activity type...',
+
+    // Helper Info for Roles
+    'kadiv_helper_title' => '🔰 Note for Kadiv',
+    'kadiv_helper_1' => 'You can add activities to projects that you created',
+    'kadiv_helper_2' => 'You CAN edit activities that you created',
+    'kadiv_helper_3' => 'You CANNOT delete activities after creation',
+    'kadiv_helper_4' => 'For activity monitoring, use the',
+    'kadiv_helper_link' => 'Activity List',
+
+    'kabag_pgb_helper_title' => '💡 Info for Kabag PGB',
+    'kabag_pgb_helper_text' => 'You can create activities for PGB projects that you handle as PIC. You can edit and delete activities that you created.',
+
+    'perizinan_helper_title' => '📋 Info for PKJ',
+    'perizinan_helper_text' => 'You can create activities for all PKJ projects. You can edit and delete activities that you created.',
+
+    'karyawan_helper_title' => '👤 Info for PGB Staff',
+    'karyawan_helper_text' => 'You can create activities for projects where you are assigned as PIC. You can edit and delete activities that you created.',
+    
+
+    'all_activities_pkj' => 'All PKJ Activities',
+    'all_activities_pgb' => 'All PGB Activities',
+
+    'no_project_assigned' => 'You have not been assigned to any project. Please contact your Department Head for project assignment.',
+
+    // Activity Types
+    'activity_type_meeting' => 'Meeting',
+    'activity_type_coding' => 'Coding',
+    'activity_type_documentation' => 'Documentation',
+    'activity_type_support' => 'Support',
 ];

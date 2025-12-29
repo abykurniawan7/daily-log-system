@@ -33,7 +33,7 @@
                                 </label>
                                 <input type="date" name="tanggal_inisiasi" id="tanggal_inisiasi" 
                                     value="{{ old('tanggal_inisiasi', $project->tanggal_inisiasi->format('Y-m-d')) }}"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('tanggal_inisiasi') border-red-500 @enderror">
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-600 focus:ring-green-600 @error('tanggal_inisiasi') border-red-500 @enderror">
                                 @error('tanggal_inisiasi')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
@@ -49,13 +49,13 @@
                                        id="target_date" 
                                        value="{{ old('target_date') }}" 
                                        required
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('target_implementasi') border-red-500 @enderror">
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-600 focus:ring-green-600 @error('target_implementasi') border-red-500 @enderror">
                                 
                                 {{-- Display Quarter (Auto-generated) --}}
-                                <div class="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                                <div class="mt-2 p-3 bg-green-50 border border-green-200 rounded-md">
                                     <p class="text-sm text-gray-700">
                                         <span class="font-semibold">{{ __('projects.quarter') }}:</span> 
-                                        <span id="quartal_display" class="text-blue-600 font-bold">{{ old('target_implementasi', $project->target_implementasi) }}</span>
+                                        <span id="quartal_display" class="text-green-600 font-bold">{{ old('target_implementasi', $project->target_implementasi) }}</span>
                                     </p>
                                 </div>
                                 
@@ -75,7 +75,7 @@
                                 <input type="text" name="nama_project" id="nama_project" 
                                     value="{{ old('nama_project', $project->nama_project) }}"
                                     placeholder="{{ __('projects.enter_project_name') }}"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('nama_project') border-red-500 @enderror">
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-600 focus:ring-green-600 @error('nama_project') border-red-500 @enderror">
                                 @error('nama_project')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
@@ -87,7 +87,7 @@
                                     {{ __('projects.urgency_label') }} <span class="text-red-500">*</span>
                                 </label>
                                 <select name="urgensi" id="urgensi" 
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('urgensi') border-red-500 @enderror">
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-600 focus:ring-green-600 @error('urgensi') border-red-500 @enderror">
                                     @if(!old('urgensi') && !$project->urgensi)
                                         <option value="" disabled selected hidden>{{ __('projects.select_urgency') }}</option>
                                     @endif
@@ -116,7 +116,7 @@
                                 <select name="sifat_project_select" 
                                         id="sifat_project_select" 
                                         required
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('sifat_project') border-red-500 @enderror">
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-600 focus:ring-green-600 @error('sifat_project') border-red-500 @enderror">
                                     @if(!$sifatProjectValue)
                                         <option value="" disabled selected hidden>{{ __('projects.select_nature') }}</option>
                                     @endif
@@ -136,7 +136,7 @@
                                        value="{{ $isOthers ? $sifatProjectValue : '' }}"
                                        placeholder="{{ __('projects.enter_other_nature') }}"
                                        style="display: {{ $isOthers ? 'block' : 'none' }};"
-                                       class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                       class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-600 focus:ring-green-600">
                                 
                                 {{-- Hidden input for submission --}}
                                 <input type="hidden" name="sifat_project" id="sifat_project" value="{{ $sifatProjectValue }}">
@@ -152,7 +152,7 @@
                                     {{ __('projects.project_owner') }} <span class="text-red-500">*</span>
                                 </label>
                                 <select name="pemilik_project_id" id="pemilik_project_id" 
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('pemilik_project_id') border-red-500 @enderror">
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-600 focus:ring-green-600 @error('pemilik_project_id') border-red-500 @enderror">
                                     @if(!old('pemilik_project_id') && !$project->pemilik_project_id)
                                         <option value="" disabled selected hidden>{{ __('projects.select_division') }}</option>
                                     @endif
@@ -167,33 +167,133 @@
                                 @enderror
                             </div>
 
-                            <!-- Project PIC -->
-                            <div>
-                                <label for="pic_proyek_id" class="block text-sm font-medium text-gray-700">
+                            <!-- ✅ REVISED: Project PIC (Multi-Select) -->
+                            <div class="md:col-span-2">
+                                <label for="pic_proyek_ids" class="block text-sm font-medium text-gray-700">
                                     {{ __('projects.pic_project') }} <span class="text-red-500">*</span>
+                                    <span class="text-xs text-gray-500 font-normal ml-2">(Bisa pilih lebih dari 1 orang)</span>
                                     
-                                    {{-- Helper Text berdasarkan pembuat project --}}
-                                    @php
-                                        $projectCreator = $project->creator;
-                                    @endphp
-                                    
-                                    @if($projectCreator && $projectCreator->role === 'supervisi')
-                                        <span class="text-xs text-gray-500 font-normal ml-2">(Hanya Karyawan PGB)</span>
-                                    @elseif($projectCreator && $projectCreator->role === 'perizinan')
-                                        <span class="text-xs text-gray-500 font-normal ml-2">(Hanya Karyawan PKJ)</span>
+                                    {{-- ✅ Helper Text berdasarkan role editor --}}
+                                    @if(auth()->user()->role === 'supervisi')
+                                        <span class="text-xs text-blue-600 font-normal block mt-1">
+                                            {{ __('projects.pic_hint_edit_supervisi') }}
+                                        </span>
+                                    @elseif(auth()->user()->role === 'kabag_pgb')
+                                        <span class="text-xs text-green-600 font-normal block mt-1">
+                                            {{ __('projects.pic_hint_edit_kabag') }}
+                                        </span>
+                                    @elseif(auth()->user()->role === 'perizinan')
+                                        <span class="text-xs text-purple-600 font-normal block mt-1">
+                                            {{ __('projects.pic_hint_edit_perizinan') }}
+                                        </span>
                                     @endif
                                 </label>
+
+                                @php
+                                    $projectOwnerRole = $project->creator->role ?? null;
+                                @endphp
                                 
-                                <select name="pic_proyek_id" id="pic_proyek_id" 
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('pic_proyek_id') border-red-500 @enderror">
-                                    @if(!old('pic_proyek_id') && !$project->pic_proyek_id)
-                                        <option value="" disabled selected hidden>{{ __('projects.select_pic') }}</option>
+                                @if($projectOwnerRole === 'kabag_pgb')
+                                    <div class="mb-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+                                        <i class="fas fa-info-circle mr-1"></i>
+                                        {{ __('projects.pic_filter_kabag') }}
+                                    </div>
+                                @elseif($projectOwnerRole === 'perizinan')
+                                    <div class="mb-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+                                        <i class="fas fa-info-circle mr-1"></i>
+                                        {{ __('projects.pic_filter_pkj') }}
+                                    </div>
+                                @endif
+                                
+                                @php
+                                    // Get existing PICs dari pivot table
+                                    $existingPicIds = old('pic_proyek_ids', $project->pics->pluck('id')->toArray());
+                                @endphp
+                                
+                                {{-- ✅ MULTI-SELECT untuk PIC --}}
+                                <select name="pic_proyek_ids[]" 
+                                        id="pic_proyek_ids" 
+                                        multiple 
+                                        required
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-600 focus:ring-green-600 @error('pic_proyek_ids') border-red-500 @enderror">
+                                    
+                                    @if(auth()->user()->role === 'supervisi')
+                                        {{-- ✅ SUPERVISI: Group by Bagian + Include Self --}}
+                                        @php
+                                            $supervisiUsers = $users->where('role', 'supervisi');
+                                            $pgbUsers = $users->where('bagian', 'PGB');
+                                            $pkjUsers = $users->where('bagian', 'PKJ');
+                                        @endphp
+                                        
+                                        {{-- Group Supervisi --}}
+                                        @if($supervisiUsers->count() > 0)
+                                            <optgroup label="🔰 SUPERVISI">
+                                                @foreach($supervisiUsers as $user)
+                                                    <option value="{{ $user->id }}" 
+                                                            data-bagian="SUPERVISI"
+                                                            data-role="{{ $user->role }}"
+                                                            {{ in_array($user->id, $existingPicIds) ? 'selected' : '' }}>
+                                                        {{ $user->name }} (Super Admin)
+                                                    </option>
+                                                @endforeach
+                                            </optgroup>
+                                        @endif
+                                        
+                                        {{-- Group PGB --}}
+                                        @if($pgbUsers->count() > 0)
+                                            <optgroup label="📁 PGB">
+                                                @foreach($pgbUsers as $user)
+                                                    <option value="{{ $user->id }}" 
+                                                            data-bagian="PGB"
+                                                            data-role="{{ $user->role }}"
+                                                            {{ in_array($user->id, $existingPicIds) ? 'selected' : '' }}>
+                                                        {{ $user->name }}
+                                                        @if($user->role === 'kabag_pgb') ★ @endif
+                                                    </option>
+                                                @endforeach
+                                            </optgroup>
+                                        @endif
+                                        
+                                        {{-- Group PKJ --}}
+                                        @if($pkjUsers->count() > 0)
+                                            <optgroup label="📁 PKJ">
+                                                @foreach($pkjUsers as $user)
+                                                    <option value="{{ $user->id }}" 
+                                                            data-bagian="PKJ"
+                                                            data-role="{{ $user->role }}"
+                                                            {{ in_array($user->id, $existingPicIds) ? 'selected' : '' }}>
+                                                        {{ $user->name }}
+                                                        @if($user->role === 'perizinan') (Kabag PKJ) @endif
+                                                    </option>
+                                                @endforeach
+                                            </optgroup>
+                                        @endif
+                                        
+                                    @elseif(auth()->user()->role === 'kabag_pgb')
+                                        {{-- ✅ KABAG PGB: Hanya PGB --}}
+                                        @foreach($users as $user)
+                                            <option value="{{ $user->id }}" 
+                                                    data-bagian="{{ $user->bagian }}"
+                                                    data-role="{{ $user->role }}"
+                                                    {{ in_array($user->id, $existingPicIds) ? 'selected' : '' }}>
+                                                {{ $user->name }}
+                                                @if($user->id === auth()->id()) (Saya) @endif
+                                                @if($user->role === 'kabag_pgb') ★ @endif
+                                            </option>
+                                        @endforeach
+                                        
+                                    @elseif(auth()->user()->role === 'perizinan')
+                                        {{-- ✅ PERIZINAN: Hanya PKJ --}}
+                                        @foreach($users as $user)
+                                            <option value="{{ $user->id }}" 
+                                                    data-bagian="{{ $user->bagian }}"
+                                                    data-role="{{ $user->role }}"
+                                                    {{ in_array($user->id, $existingPicIds) ? 'selected' : '' }}>
+                                                {{ $user->name }}
+                                                @if($user->id === auth()->id()) (Saya - Kabag PKJ) @endif
+                                            </option>
+                                        @endforeach
                                     @endif
-                                    @foreach($users as $user)
-                                        <option value="{{ $user->id }}" {{ old('pic_proyek_id', $project->pic_proyek_id) == $user->id ? 'selected' : '' }}>
-                                            {{ $user->name }} ({{ $user->bagian }})
-                                        </option>
-                                    @endforeach
                                 </select>
                                 
                                 @if($users->isEmpty())
@@ -202,18 +302,22 @@
                                     </p>
                                 @endif
                                 
-                                @error('pic_proyek_id')
+                                @error('pic_proyek_ids')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                                
+                                @error('pic_proyek_ids.*')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
 
                             <!-- Status -->
-                            <div>
+                            <div class="md:col-span-2">
                                 <label for="status" class="block text-sm font-medium text-gray-700">
                                     {{ __('projects.status') }} <span class="text-red-500">*</span>
                                 </label>
                                 <select name="status" id="status" 
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('status') border-red-500 @enderror">
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-600 focus:ring-green-600 @error('status') border-red-500 @enderror">
                                     @if(!old('status') && !$project->status)
                                         <option value="" disabled selected hidden>{{ __('projects.select_status') }}</option>
                                     @endif
@@ -233,7 +337,7 @@
                                 </label>
                                 <textarea name="deskripsi" id="deskripsi" rows="4" 
                                     placeholder="{{ __('projects.enter_description') }}"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('deskripsi') border-red-500 @enderror">{{ old('deskripsi', $project->deskripsi) }}</textarea>
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-600 focus:ring-green-600 @error('deskripsi') border-red-500 @enderror">{{ old('deskripsi', $project->deskripsi) }}</textarea>
                                 @error('deskripsi')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
@@ -255,6 +359,48 @@
             </div>
         </div>
     </div>
+
+    {{-- ✅ CSS Custom untuk Select2 Multi-select --}}
+    @push('styles')
+    <style>
+        .select2-container--default .select2-selection--multiple {
+            min-height: 42px !important;
+            border-color: #d1d5db !important;
+            border-radius: 0.375rem !important;
+            padding: 2px 8px !important;
+        }
+        
+        .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            background-color: #10b981 !important;
+            border-color: #059669 !important;
+            color: white !important;
+            padding: 4px 10px !important;
+            border-radius: 9999px !important;
+            font-size: 0.875rem !important;
+            margin: 3px !important;
+        }
+        
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+            color: white !important;
+            margin-right: 5px !important;
+            font-weight: bold !important;
+        }
+        
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+            color: #fca5a5 !important;
+        }
+        
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: #d1fae5 !important;
+            color: #065f46 !important;
+        }
+        
+        .select2-container--default.select2-container--focus .select2-selection--multiple {
+            border-color: #10b981 !important;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
+        }
+    </style>
+    @endpush
 
     @push('scripts')
     <script>
@@ -307,12 +453,12 @@
             });
 
             // ===== PROJECT NATURE - OTHERS HANDLING =====
-            const sifatProjectSelect = document.getElementById('sifat_project_select');
+            const sifatProjectSelect = $('#sifat_project_select');
             const sifatProjectOthers = document.getElementById('sifat_project_others');
             const sifatProjectHidden = document.getElementById('sifat_project');
 
             function updateSifatProject() {
-                const selectedValue = sifatProjectSelect.value;
+                const selectedValue = sifatProjectSelect.val();
                 
                 if (selectedValue === 'Others') {
                     sifatProjectOthers.style.display = 'block';
@@ -325,7 +471,7 @@
                 }
             }
 
-            sifatProjectSelect.addEventListener('change', updateSifatProject);
+            sifatProjectSelect.on('select2:select', updateSifatProject);
             sifatProjectOthers.addEventListener('input', function() {
                 sifatProjectHidden.value = this.value;
             });
@@ -347,10 +493,18 @@
                 }
 
                 // Validate sifat project others
-                if (sifatProjectSelect.value === 'Others' && !sifatProjectOthers.value.trim()) {
+                if (sifatProjectSelect.val() === 'Others' && !sifatProjectOthers.value.trim()) {
                     isValid = false;
                     errorMessage = '{{ __("projects.enter_other_nature") }}';
                     sifatProjectOthers.focus();
+                }
+
+                // ✅ Validate PIC (Multi-select)
+                var selectedPics = $('#pic_proyek_ids').val();
+                if (!selectedPics || selectedPics.length === 0) {
+                    isValid = false;
+                    errorMessage = 'PIC Proyek wajib dipilih minimal 1 orang!';
+                    $('#pic_proyek_ids').select2('open');
                 }
 
                 if (!isValid) {
@@ -360,6 +514,93 @@
                 }
             });
         });
+
+        // ===== INITIALIZE SELECT2 =====
+        $(document).ready(function() {
+            // Urgensi
+            $('#urgensi').select2({
+                placeholder: 'Pilih Urgensi',
+                allowClear: false,
+                width: '100%',
+                minimumResultsForSearch: Infinity
+            });
+
+            // Sifat Project
+            $('#sifat_project_select').select2({
+                placeholder: 'Pilih Sifat Project',
+                allowClear: false,
+                width: '100%',
+                minimumResultsForSearch: Infinity
+            });
+
+            // Divisi
+            $('#pemilik_project_id').select2({
+                placeholder: 'Pilih Divisi',
+                allowClear: false,
+                width: '100%',
+                minimumResultsForSearch: Infinity
+            });
+
+            // ✅ PIC Multi-select
+            $('#pic_proyek_ids').select2({
+                placeholder: 'Pilih PIC (bisa lebih dari 1)',
+                allowClear: true,
+                width: '100%',
+                closeOnSelect: false,
+                templateResult: formatPicOption,
+                templateSelection: formatPicSelection
+            });
+
+            function formatPicOption(option) {
+                if (!option.id) return option.text;
+                
+                var $option = $(option.element);
+                var bagian = $option.data('bagian');
+                var role = $option.data('role');
+                var name = option.text.replace(/\s*\(.*?\)\s*$/g, '').replace('★', '').trim();
+                
+                var badge = '';
+                if (bagian === 'PGB') {
+                    badge = '<span class="ml-2 px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full font-medium">PGB</span>';
+                } else if (bagian === 'PKJ') {
+                    badge = '<span class="ml-2 px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded-full font-medium">PKJ</span>';
+                }
+                
+                var roleIndicator = '';
+                if (role === 'kabag_pgb') {
+                    roleIndicator = '<span class="ml-1 text-xs text-green-600 font-bold">★</span>';
+                } else if (role === 'perizinan') {
+                    roleIndicator = '<span class="ml-1 text-xs text-purple-600 font-bold">(Kabag)</span>';
+                }
+                
+                return $('<span>' + name + roleIndicator + badge + '</span>');
+            }
+
+            function formatPicSelection(option) {
+                if (!option.id) return option.text;
+                
+                var $option = $(option.element);
+                var bagian = $option.data('bagian');
+                var name = option.text.replace(/\s*\(.*?\)\s*$/g, '').replace('★', '').trim();
+                
+                var badge = '';
+                if (bagian === 'PGB') {
+                    badge = '<span class="ml-1 px-1.5 py-0.5 text-xs bg-green-500 text-white rounded font-medium">P</span>';
+                } else if (bagian === 'PKJ') {
+                    badge = '<span class="ml-1 px-1.5 py-0.5 text-xs bg-purple-500 text-white rounded font-medium">K</span>';
+                }
+                
+                return $('<span>' + name + badge + '</span>');
+            }
+
+            // Status
+            $('#status').select2({
+                placeholder: 'Pilih Status',
+                allowClear: false,
+                width: '100%',
+                minimumResultsForSearch: Infinity
+            });
+        });
     </script>
     @endpush
-</x-app-layout>
+</x-app-layout> 

@@ -8,7 +8,7 @@ return [
     'your_projects' => 'Projects assigned to you and your activities',
     
     // Quick Actions
-    'add_project' => 'Project',
+    'add_project' => 'PROJECT',
     'add_activity' => 'Activity',
     
     // Stats Cards

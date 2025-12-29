@@ -16,18 +16,59 @@ class ProjectController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
+
+        $filter = $request->get('filter', 'all');
+        session(['projects_filter' => $filter]);
+
+        session(['projects_current_filter' => $filter]);
         
-        // Base query berdasarkan role & bagian
+        // Base query berdasarkan role
         if ($user->role === 'supervisi') {
-            // Supervisi: lihat semua project
-            $query = Project::with(['pemilikProject', 'picProyek']);
-        } elseif ($user->bagian === 'PKJ') {
-            // PKJ: lihat SEMUA project (NEW!)
-            $query = Project::with(['pemilikProject', 'picProyek']);
+            $query = Project::with(['pemilikProject', 'pics']);
+            
+            if ($filter === 'my') {
+                // ✅ FIXED: Project yang dia buat ATAU dia jadi PIC
+                $query->where(function($q) use ($user) {
+                    $q->where('user_id', $user->id) // Creator
+                    ->orWhereHas('pics', function($subQ) use ($user) {
+                        $subQ->where('user_id', $user->id); // PIC
+                    });
+                });
+            }
+            
+        } elseif ($user->role === 'kabag_pgb') {
+            $query = Project::with(['pemilikProject', 'pics']);
+            
+            if ($filter === 'my') {
+                // ✅ FIXED: Project yang dia buat ATAU dia jadi PIC
+                $query->where(function($q) use ($user) {
+                    $q->where('user_id', $user->id) // Creator
+                    ->orWhereHas('pics', function($subQ) use ($user) {
+                        $subQ->where('user_id', $user->id); // PIC
+                    });
+                });
+            }
+            
+        } elseif ($user->isPKJ()) {
+            // ✅ FIXED: Gunakan isPKJ() helper - cover Kabag PKJ & Staff PKJ
+            $query = Project::with(['pemilikProject', 'pics']);
+            
+            if ($filter === 'my') {
+                // ✅ FIXED: Project yang dia buat ATAU dia jadi PIC
+                $query->where(function($q) use ($user) {
+                    $q->where('user_id', $user->id) // Creator
+                    ->orWhereHas('pics', function($subQ) use ($user) {
+                        $subQ->where('user_id', $user->id); // PIC (dari pivot table)
+                    });
+                });
+            }
+            
         } else {
-            // PGB: hanya project milik sendiri
-            $query = Project::with(['pemilikProject', 'picProyek'])
-                ->where('pic_proyek_id', $user->id);
+            // PGB Staff: hanya project yang dia jadi PIC (tidak bisa create project)
+            $query = Project::with(['pemilikProject', 'pics'])
+                ->whereHas('pics', function($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                });
         }
         
         // Search by nama project, PIC, atau divisi
@@ -35,12 +76,12 @@ class ProjectController extends Controller
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('nama_project', 'like', "%{$search}%")
-                  ->orWhereHas('picProyek', function($q) use ($search) {
-                      $q->where('name', 'like', "%{$search}%");
-                  })
-                  ->orWhereHas('pemilikProject', function($q) use ($search) {
-                      $q->where('nama_divisi', 'like', "%{$search}%");
-                  });
+                ->orWhereHas('pics', function($subQ) use ($search) {
+                    $subQ->where('name', 'like', "%{$search}%");
+                })
+                ->orWhereHas('pemilikProject', function($subQ) use ($search) {
+                    $subQ->where('nama_divisi', 'like', "%{$search}%");
+                });
             });
         }
         
@@ -79,34 +120,46 @@ class ProjectController extends Controller
             $query->orderBy('created_at', 'desc');
         }
         
+        // Paginate
         $projects = $query->paginate(10)->appends($request->query());
         
         // Get divisions untuk filter dropdown
         $divisions = Division::all();
         
-        // Quick stats - UPDATED untuk PKJ
-        if ($user->role === 'supervisi') {
-            $stats = [
-                'total' => Project::count(),
-                'progress' => Project::where('status', 'Progress')->count(),
-                'pending' => Project::where('status', 'Pending')->count(),
-                'done' => Project::where('status', 'Done')->count(),
-            ];
-        } elseif ($user->bagian === 'PKJ') {
-            // PKJ: stats dari semua project
-            $stats = [
-                'total' => Project::count(),
-                'progress' => Project::where('status', 'Progress')->count(),
-                'pending' => Project::where('status', 'Pending')->count(),
-                'done' => Project::where('status', 'Done')->count(),
-            ];
+        // ✅ FIXED: Stats calculation
+        if ($user->role === 'supervisi' || $user->role === 'kabag_pgb' || $user->isPKJ()) {
+            if ($filter === 'my') {
+                // ✅ FIXED: Stats untuk My Projects - include projects sebagai PIC
+                $myProjectIds = Project::where('user_id', $user->id)
+                    ->orWhereHas('pics', function($q) use ($user) {
+                        $q->where('user_id', $user->id);
+                    })
+                    ->pluck('id');
+                
+                $stats = [
+                    'total' => $myProjectIds->count(),
+                    'progress' => Project::whereIn('id', $myProjectIds)->where('status', 'Progress')->count(),
+                    'pending' => Project::whereIn('id', $myProjectIds)->where('status', 'Pending')->count(),
+                    'done' => Project::whereIn('id', $myProjectIds)->where('status', 'Done')->count(),
+                ];
+            } else {
+                // Stats untuk All Projects
+                $stats = [
+                    'total' => Project::count(),
+                    'progress' => Project::where('status', 'Progress')->count(),
+                    'pending' => Project::where('status', 'Pending')->count(),
+                    'done' => Project::where('status', 'Done')->count(),
+                ];
+            }
         } else {
-            // PGB: stats hanya project sendiri
+            // PGB Staff: stats dari project assigned
+            $assignedProjectIds = $user->assignedProjects()->pluck('projects.id');
+            
             $stats = [
-                'total' => Project::where('pic_proyek_id', $user->id)->count(),
-                'progress' => Project::where('pic_proyek_id', $user->id)->where('status', 'Progress')->count(),
-                'pending' => Project::where('pic_proyek_id', $user->id)->where('status', 'Pending')->count(),
-                'done' => Project::where('pic_proyek_id', $user->id)->where('status', 'Done')->count(),
+                'total' => Project::whereIn('id', $assignedProjectIds)->count(),
+                'progress' => Project::whereIn('id', $assignedProjectIds)->where('status', 'Progress')->count(),
+                'pending' => Project::whereIn('id', $assignedProjectIds)->where('status', 'Pending')->count(),
+                'done' => Project::whereIn('id', $assignedProjectIds)->where('status', 'Done')->count(),
             ];
         }
         
@@ -115,30 +168,57 @@ class ProjectController extends Controller
 
     /**
      * Show the form for creating a new project.
+     * 
+     * ✅ UPDATED: Staff PKJ sekarang bisa buat project
      */
     public function create()
     {
         $user = auth()->user();
-        
-        // Ambil semua divisi untuk dropdown
         $divisions = Division::all();
         
-        // ✅ LOGIC PIC BERDASARKAN ROLE PEMBUAT PROJECT
+        // ✅ UPDATED: Gunakan helper function
+        if (!$user->canCreateProject()) {
+            abort(403, 'Unauthorized. You do not have permission to create projects.');
+        }
+        
+        // Logic PIC berdasarkan role pembuat project
         if ($user->role === 'supervisi') {
-            // Supervisi: Hanya tampilkan karyawan PGB
-            $users = User::where('role', 'karyawan')
-                ->where('bagian', 'PGB')
-                ->orderBy('name', 'asc')
+            // Super Admin: Ambil SEMUA user (PGB + PKJ) + diri sendiri
+            $users = User::where(function($q) {
+                    $q->whereIn('role', ['kabag_pgb', 'karyawan', 'perizinan'])
+                    ->whereNotNull('bagian')
+                    ->where('bagian', '!=', '');
+                })
+                ->orWhere('role', 'supervisi')
+                ->orderBy('bagian')
+                ->orderBy('name')
                 ->get();
-        } elseif ($user->role === 'perizinan') {
-            // PKJ: Hanya tampilkan karyawan PKJ (termasuk dirinya sendiri)
-            $users = User::where('role', 'perizinan')
-                ->where('bagian', 'PKJ')
-                ->orderBy('name', 'asc')
+            
+        } elseif ($user->role === 'kabag_pgb') {
+            // Kabag PGB: Semua user (PGB + PKJ) KECUALI Supervisi
+            $users = User::where('role', '!=', 'supervisi')
+                ->whereNotNull('bagian')
+                ->where('bagian', '!=', '')
+                ->orderBy('bagian')
+                ->orderBy('name')
                 ->get();
+            
+        } elseif ($user->isPKJ()) {
+            // ✅ UPDATED: PKJ (Kabag atau Staff): Bisa pilih semua PKJ
+            $users = User::where(function($q) {
+                    // Kabag PKJ (role = perizinan)
+                    $q->where('role', 'perizinan')
+                    // ATAU Karyawan dengan bagian PKJ
+                    ->orWhere(function($subQ) {
+                        $subQ->where('role', 'karyawan')
+                            ->where('bagian', 'PKJ');
+                    });
+                })
+                ->orderBy('name')
+                ->get();
+                
         } else {
-            // PGB: Tidak boleh create project (fallback, seharusnya sudah di-handle middleware)
-            abort(403, 'Unauthorized. PGB tidak dapat membuat project.');
+            abort(403, 'Unauthorized. You do not have permission to create projects.');
         }
 
         return view('projects.create', compact('divisions', 'users'));
@@ -149,7 +229,9 @@ class ProjectController extends Controller
      */
     public function store(Request $request)
     {
-        // Validasi input dengan custom messages
+        $user = auth()->user();
+        
+        // Validation
         $validated = $request->validate([
             'tanggal_inisiasi' => 'required|date',
             'target_implementasi' => 'required|string|max:255',
@@ -158,164 +240,440 @@ class ProjectController extends Controller
             'sifat_project' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
             'pemilik_project_id' => 'required|exists:divisions,id',
-            'pic_proyek_id' => 'required|exists:users,id',
+            'pic_proyek_ids' => 'required|array|min:1',
+            'pic_proyek_ids.*' => 'exists:users,id',
             'status' => 'required|in:Progress,Pending,Done',
         ], [
             'urgensi.required' => __('projects.urgency_required'),
             'sifat_project.required' => __('projects.nature_required'),
             'pemilik_project_id.required' => __('projects.division_required'),
-            'pic_proyek_id.required' => __('projects.pic_required'),
+            'pic_proyek_ids.required' => 'PIC wajib dipilih minimal 1 orang',
+            'pic_proyek_ids.min' => 'PIC wajib dipilih minimal 1 orang',
+            'pic_proyek_ids.*.exists' => 'Salah satu PIC yang dipilih tidak valid',
             'status.required' => __('projects.status_required'),
         ]);
 
-        // Set user_id ke user yang sedang login (creator)
-        $validated['user_id'] = auth()->id();
+        // Validate PIC sesuai bagian
+        $picUsers = User::whereIn('id', $validated['pic_proyek_ids'])->get();
+        
+        if ($user->role === 'kabag_pgb') {
+            $invalidPics = $picUsers->where('bagian', '!=', 'PGB')
+                                    ->where('id', '!=', $user->id);
+            
+            if ($invalidPics->count() > 0) {
+                return back()
+                    ->withInput()
+                    ->withErrors(['pic_proyek_ids' => 'Kabag PGB hanya boleh assign PIC dari bagian PGB']);
+            }
+            
+        } elseif ($user->role === 'perizinan') {
+            $invalidPics = $picUsers->where('bagian', '!=', 'PKJ');
+            
+            if ($invalidPics->count() > 0) {
+                return back()
+                    ->withInput()
+                    ->withErrors(['pic_proyek_ids' => 'PKJ hanya boleh assign PIC dari bagian PKJ']);
+            }
+        }
+        
+        // Set creator
+        $validated['user_id'] = $user->id;
+        
+        // Backward compatibility
+        $validated['pic_proyek_id'] = $validated['pic_proyek_ids'][0];
+        
+        // ✅ NEW: Auto-assign Kadiv sebagai Pengawas
+        // HANYA jika project BUKAN dibuat oleh Kadiv sendiri
+        if ($user->role !== 'supervisi') {
+            // Cari Kadiv (user dengan role supervisi)
+            $kadiv = User::where('role', 'supervisi')->first();
+            
+            if ($kadiv) {
+                $validated['pengawas_id'] = $kadiv->id;
+                
+                \Log::info('✅ Auto-assigned Kadiv as Pengawas', [
+                    'project_creator' => $user->name,
+                    'project_creator_role' => $user->role,
+                    'kadiv_assigned' => $kadiv->name,
+                    'kadiv_id' => $kadiv->id
+                ]);
+            } else {
+                \Log::warning('⚠️ No Kadiv found for auto-assignment', [
+                    'project_creator' => $user->name
+                ]);
+            }
+        } else {
+            \Log::info('ℹ️ Project created by Kadiv - No auto-assignment', [
+                'kadiv_creator' => $user->name
+            ]);
+        }
+        
+        // Remove pic_proyek_ids from validated
+        $picIds = $validated['pic_proyek_ids'];
+        unset($validated['pic_proyek_ids']);
 
-        // Simpan ke database
-        Project::create($validated);
+        // Create project
+        $project = Project::create($validated);
 
-        // Redirect dengan pesan sukses
+        // Sync PICs
+        $project->pics()->sync($picIds);
+
+        // ✅ Success message with Pengawas info
+        $successMessage = 'Project berhasil ditambahkan dengan ' . count($picIds) . ' PIC!';
+        
+        if ($project->hasPengawas()) {
+            $successMessage .= ' Pengawas: ' . $project->pengawas->name;
+        }
+
         return redirect()->route('projects.index')
-            ->with('success', 'Project berhasil ditambahkan!');
+            ->with('success', $successMessage);
     }
 
     /**
      * Display the specified project with activities (paginated & filtered)
+     * 
+     * ✅ UPDATED: Enhanced toggle logic untuk Kadiv + PKJ (tanpa PGB)
      */
     public function show(Request $request, Project $project)
     {
+        if ($request->hasHeader('Referer')) {
+            $referer = $request->header('Referer');
+            
+            if (str_contains($referer, '/projects') && 
+                !str_contains($referer, '/export-preview') && 
+                !str_contains($referer, '/export-pdf')) {
+                
+                session(['projects_back_url' => $referer]);
+            }
+        }
+        
         $user = auth()->user();
         
-        // Load project creator untuk decision logic
-        $project->load(['pemilikProject', 'picProyek', 'creator']);
+        // Load project relationships
+        $project->load(['pemilikProject', 'pics', 'creator', 'pengawas']);
         
-        // ✅ DECISION: Tentukan apakah perlu toggle berdasarkan pembuat project
         $projectCreator = $project->creator;
-        $showToggle = ($projectCreator && $projectCreator->role === 'supervisi');
         
-        // Determine view mode (PGB or PKJ)
-        if ($showToggle) {
-            // Project dibuat Supervisi → ada toggle, default sesuai user bagian
-            $viewBagian = $request->get('view_bagian', $user->bagian ?? 'PGB');
+        // ✅ NEW: Determine toggle type
+        // 'SUPERVISI_PGB_PKJ' = Toggle 3 tab: Supervisi, PGB, PKJ (maroon, hijau, ungu)
+        // 'PGB_PKJ' = Toggle antara PGB dan PKJ (hijau & ungu)
+        // 'SUPERVISI_PKJ' = Toggle antara Supervisi dan PKJ (maroon & ungu)
+        // 'SUPERVISI_PGB' = Toggle antara Supervisi dan PGB (maroon & hijau)
+        // null = Tidak ada toggle
+        $toggleType = null;
+        $showToggle = false;
+        
+        if ($projectCreator && $projectCreator->role === 'supervisi') {
+            // ========== PROJECT DIBUAT OLEH KADIV ==========
+            $hasPGBPics = $project->pics->filter(fn($pic) => $pic->bagian === 'PGB')->count() > 0;
+            $hasPKJPics = $project->pics->filter(fn($pic) => $pic->bagian === 'PKJ')->count() > 0;
+            
+            if ($hasPGBPics && $hasPKJPics) {
+                // ✅ NEW: Kadiv + PGB + PKJ → Toggle 3 TAB: Supervisi/PGB/PKJ
+                $showToggle = true;
+                $toggleType = 'SUPERVISI_PGB_PKJ';
+                
+            } elseif ($hasPKJPics && !$hasPGBPics) {
+                // Kadiv + PKJ only (tanpa PGB) → Toggle Supervisi/PKJ
+                $showToggle = true;
+                $toggleType = 'SUPERVISI_PKJ';
+                
+            } elseif ($hasPGBPics && !$hasPKJPics) {
+                // Kadiv + PGB only → Toggle Supervisi/PGB
+                $showToggle = true;
+                $toggleType = 'SUPERVISI_PGB';
+                
+            } else {
+                // Kadiv saja tanpa PIC lain → No toggle
+                $showToggle = false;
+                $toggleType = null;
+            }
+            
+            \Log::info('📊 Toggle Logic - Kadiv Project', [
+                'project_id' => $project->id,
+                'creator' => $projectCreator->name,
+                'has_pgb_pics' => $hasPGBPics,
+                'has_pkj_pics' => $hasPKJPics,
+                'toggle_type' => $toggleType,
+                'show_toggle' => $showToggle
+            ]);
+            
+        } elseif ($projectCreator && $projectCreator->role === 'perizinan') {
+            // ========== PROJECT DIBUAT OLEH PKJ ==========
+            $hasPGBPics = $project->pics->filter(fn($pic) => $pic->bagian === 'PGB')->count() > 0;
+            
+            if ($hasPGBPics) {
+                // PKJ + PGB → Toggle PGB/PKJ
+                $showToggle = true;
+                $toggleType = 'PGB_PKJ';
+            } else {
+                // ✅ PKJ only (tanpa PGB) → No toggle
+                $showToggle = false;
+                $toggleType = null;
+            }
+            
+            \Log::info('📊 Toggle Logic - PKJ Project', [
+                'project_id' => $project->id,
+                'creator' => $projectCreator->name,
+                'has_pgb_pics' => $hasPGBPics,
+                'toggle_type' => $toggleType,
+                'show_toggle' => $showToggle
+            ]);
+            
         } else {
-            // Project dibuat PKJ → tidak ada toggle, selalu tampilkan aktivitas PKJ
-            $viewBagian = 'PKJ';
+            // ========== PROJECT DIBUAT OLEH KABAG PGB ==========
+            // Always show PGB/PKJ toggle
+            $showToggle = true;
+            $toggleType = 'PGB_PKJ';
+        }
+        
+        // ✅ Determine default view bagian based on toggle type
+        if ($showToggle) {
+            if ($toggleType === 'SUPERVISI_PGB_PKJ') {
+                // ✅ NEW: 3 tab toggle - default ke user's bagian atau SUPERVISI untuk Kadiv
+                if ($user->role === 'supervisi') {
+                    $defaultBagian = 'SUPERVISI';
+                } elseif ($user->bagian === 'PGB') {
+                    $defaultBagian = 'PGB';
+                } elseif ($user->bagian === 'PKJ') {
+                    $defaultBagian = 'PKJ';
+                } else {
+                    $defaultBagian = 'PGB';
+                }
+                $viewBagian = $request->get('view_bagian', $defaultBagian);
+            } elseif ($toggleType === 'SUPERVISI_PKJ') {
+                // Default ke PKJ untuk toggle Supervisi/PKJ
+                $defaultBagian = ($user->role === 'supervisi') ? 'SUPERVISI' : 'PKJ';
+                $viewBagian = $request->get('view_bagian', $defaultBagian);
+            } elseif ($toggleType === 'SUPERVISI_PGB') {
+                // Default ke PGB untuk toggle Supervisi/PGB
+                $defaultBagian = ($user->role === 'supervisi') ? 'SUPERVISI' : 'PGB';
+                $viewBagian = $request->get('view_bagian', $defaultBagian);
+            } else {
+                // Default PGB/PKJ toggle
+                $viewBagian = $request->get('view_bagian', $user->bagian ?? 'PGB');
+            }
+        } else {
+            $viewBagian = null;
         }
         
         // Base query for activities
         $activitiesQuery = $project->activities()->with('user');
         
-        // Filter based on view_bagian (HANYA jika ada toggle)
+        // ✅ UPDATED: Filter logic based on toggle type
         if ($showToggle) {
-            if ($viewBagian === 'PGB') {
-                $activitiesQuery->whereHas('user', function($q) {
-                    $q->where('bagian', 'PGB');
-                });
-            } elseif ($viewBagian === 'PKJ') {
+            if ($toggleType === 'SUPERVISI_PGB_PKJ') {
+                // ✅ 3 tab toggle - STRICT filtering, no overlap
+                if ($viewBagian === 'SUPERVISI') {
+                    // HANYA aktivitas dari Kadiv pembuat project
+                    $activitiesQuery->where('user_id', $project->user_id)
+                        ->whereHas('user', function($q) {
+                            $q->where('role', 'supervisi');
+                        });
+                } elseif ($viewBagian === 'PGB') {
+                    // HANYA aktivitas dari user PGB (exclude Kadiv)
+                    $activitiesQuery->whereHas('user', function($q) {
+                        $q->where('bagian', 'PGB')
+                        ->where('role', '!=', 'supervisi');
+                    });
+                } else {
+                    // HANYA aktivitas dari user PKJ (exclude Kadiv)
+                    $activitiesQuery->whereHas('user', function($q) {
+                        $q->where('bagian', 'PKJ')
+                        ->where('role', '!=', 'supervisi');
+                    });
+                }
+                
+            } elseif ($toggleType === 'SUPERVISI_PKJ') {
+                // Toggle Supervisi/PKJ - STRICT filtering
+                if ($viewBagian === 'SUPERVISI') {
+                    // HANYA aktivitas dari Kadiv pembuat project
+                    $activitiesQuery->where('user_id', $project->user_id)
+                        ->whereHas('user', function($q) {
+                            $q->where('role', 'supervisi');
+                        });
+                } else {
+                    // HANYA aktivitas dari PKJ (exclude Kadiv)
+                    $activitiesQuery->whereHas('user', function($q) {
+                        $q->where('bagian', 'PKJ')
+                        ->where('role', '!=', 'supervisi');
+                    });
+                }
+                
+            } elseif ($toggleType === 'SUPERVISI_PGB') {
+                // Toggle Supervisi/PGB - STRICT filtering
+                if ($viewBagian === 'SUPERVISI') {
+                    // HANYA aktivitas dari Kadiv pembuat project
+                    $activitiesQuery->where('user_id', $project->user_id)
+                        ->whereHas('user', function($q) {
+                            $q->where('role', 'supervisi');
+                        });
+                } else {
+                    // HANYA aktivitas dari PGB (exclude Kadiv)
+                    $activitiesQuery->whereHas('user', function($q) {
+                        $q->where('bagian', 'PGB')
+                        ->where('role', '!=', 'supervisi');
+                    });
+                }
+                
+            } else {
+                // Toggle PGB/PKJ (original logic untuk non-Kadiv projects)
+                if ($viewBagian === 'PGB') {
+                    $activitiesQuery->where(function($q) use ($project) {
+                        $q->whereHas('user', function($subQ) {
+                            $subQ->where('bagian', 'PGB');
+                        })
+                        // Include aktivitas Kadiv jika dia pembuat project
+                        ->orWhere(function($subQ) use ($project) {
+                            $subQ->where('user_id', $project->user_id)
+                                ->whereHas('user', function($userQ) {
+                                    $userQ->where('role', 'supervisi');
+                                });
+                        });
+                    });
+                    
+                } elseif ($viewBagian === 'PKJ') {
+                    $activitiesQuery->where(function($q) use ($project) {
+                        $q->whereHas('user', function($subQ) {
+                            $subQ->where('bagian', 'PKJ');
+                        })
+                        // Include aktivitas Kadiv jika dia pembuat project
+                        ->orWhere(function($subQ) use ($project) {
+                            $subQ->where('user_id', $project->user_id)
+                                ->whereHas('user', function($userQ) {
+                                    $userQ->where('role', 'supervisi');
+                                });
+                        });
+                    });
+                }
+            }
+            
+        } else {
+            // TIDAK ADA TOGGLE: Tampilkan aktivitas sesuai pembuat
+            if ($projectCreator && $projectCreator->role === 'supervisi') {
+                // Kadiv project tanpa PIC lain → aktivitas Kadiv saja
+                $activitiesQuery->where('user_id', $project->user_id);
+            } elseif ($projectCreator && $projectCreator->role === 'perizinan') {
+                // PKJ project tanpa PGB → aktivitas PKJ saja
                 $activitiesQuery->whereHas('user', function($q) {
                     $q->where('bagian', 'PKJ');
                 });
+            } else {
+                // Fallback
+                $activitiesQuery->where('user_id', $project->user_id);
             }
-        } else {
-            // Jika tidak ada toggle (project PKJ), tampilkan semua aktivitas (seharusnya hanya PKJ)
-            // Tidak perlu filter tambahan karena project PKJ biasanya hanya ada aktivitas PKJ
-            // Tapi untuk safety, bisa tambahkan filter:
-            $activitiesQuery->whereHas('user', function($q) {
-                $q->where('bagian', 'PKJ');
-            });
         }
         
-        // Sorting: Done activities at bottom, recent at top
+        // Sorting
         $activitiesQuery->orderByRaw("CASE WHEN status = 'Done' THEN 1 ELSE 0 END")
                         ->orderBy('tanggal_mulai', 'desc');
         
-        // Paginate activities (10 per page)
+        // Paginate
         if ($showToggle) {
-            // Jika ada toggle, append view_bagian ke pagination
             $activities = $activitiesQuery->paginate(10)->appends(['view_bagian' => $viewBagian]);
         } else {
-            // Jika tidak ada toggle, pagination biasa
             $activities = $activitiesQuery->paginate(10);
         }
         
-        return view('projects.show', compact('project', 'activities', 'viewBagian', 'showToggle'));
+        // ✅ Pass toggleType to view
+        return view('projects.show', compact('project', 'activities', 'viewBagian', 'showToggle', 'toggleType'));
     }
 
     /**
-     * Show the form for editing the specified project.
+     * Show the form for editing the specified resource.
      */
     public function edit(Project $project)
     {
         $user = auth()->user();
         
-        // Authorization: FIXED LOGIC
+        // ✅ AUTHORIZATION LOGIC
+        $canEdit = false;
+        
         if ($user->role === 'supervisi') {
-            // Supervisi HANYA bisa edit project yang dia buat sendiri (user_id)
-            if ($project->user_id !== $user->id) {
-                abort(403, 'Anda hanya dapat mengedit project yang Anda buat sendiri.');
-            }
+            $canEdit = ($project->user_id === $user->id);
+            
+        } elseif ($user->role === 'kabag_pgb') {
+            $canEdit = ($project->user_id === $user->id);
+            
         } elseif ($user->bagian === 'PKJ') {
-            // PKJ HANYA bisa edit project yang dia buat sendiri (user_id)
-            if ($project->user_id !== $user->id) {
-                abort(403, 'Anda hanya dapat mengedit project yang Anda buat sendiri.');
-            }
-        } else {
-            // PGB hanya bisa edit project sendiri (pic_proyek_id)
-            if ($project->pic_proyek_id !== $user->id) {
-                abort(403, 'Anda hanya dapat mengedit project yang Anda buat sendiri.');
-            }
+            $projectCreator = $project->creator;
+            $canEdit = ($projectCreator && $projectCreator->bagian === 'PKJ');
+        }
+        
+        if (!$canEdit) {
+            abort(403, 'Anda tidak memiliki akses untuk mengedit project ini.');
         }
 
         $divisions = Division::all();
         
-        // ✅ LOGIC PIC BERDASARKAN PEMBUAT PROJECT (dari $project->creator)
+        // ✅ Load existing PICs dari pivot table
+        $existingPicIds = $project->pics->pluck('id')->toArray();
+        
+        // Get available users (sama seperti create)
         $projectCreator = $project->creator;
         
         if ($projectCreator && $projectCreator->role === 'supervisi') {
-            // Project dibuat Supervisi → Hanya tampilkan PGB
-            $users = User::where('role', 'karyawan')
-                ->where('bagian', 'PGB')
-                ->orderBy('name', 'asc')
+            // ✅ FIXED: Super Admin bisa pilih dari PGB + PKJ + DIRI SENDIRI
+            $users = User::where(function($q) use ($projectCreator) {
+                    $q->whereIn('role', ['kabag_pgb', 'karyawan', 'perizinan'])
+                    ->whereNotNull('bagian')
+                    ->where('bagian', '!=', '')
+                    // ✅ ATAU supervisi pembuat
+                    ->orWhere('id', $projectCreator->id); // ← PINDAHKAN KE DALAM CLOSURE
+                })
+                ->orderBy('bagian')
+                ->orderBy('name')
                 ->get();
+                
+        } elseif ($projectCreator && $projectCreator->role === 'kabag_pgb') {
+            // ✅ Kabag PGB: Semua user (PGB + PKJ) KECUALI Supervisi/Kadiv
+            $users = User::where('role', '!=', 'supervisi') // Exclude Kadiv/Supervisi
+                ->whereNotNull('bagian')
+                ->where('bagian', '!=', '')
+                ->orderBy('bagian')
+                ->orderBy('name')
+                ->get();
+            
         } elseif ($projectCreator && $projectCreator->role === 'perizinan') {
-            // Project dibuat PKJ → Hanya tampilkan PKJ
+            // PKJ: hanya PKJ
             $users = User::where('role', 'perizinan')
                 ->where('bagian', 'PKJ')
-                ->orderBy('name', 'asc')
+                ->orderBy('name')
                 ->get();
         } else {
-            // Fallback (seharusnya tidak terjadi)
-            $users = User::whereIn('role', ['perizinan', 'karyawan'])
-                ->orderBy('name', 'asc')
-                ->get();
+            // Fallback
+            $users = collect();
         }
         
-        return view('projects.edit', compact('project', 'divisions', 'users'));
+        return view('projects.edit', compact('project', 'divisions', 'users', 'existingPicIds'));
     }
 
     /**
-     * Update the specified project in storage.
+     * Update the specified resource in storage.
      */
     public function update(Request $request, Project $project)
     {
         $user = auth()->user();
         
-        // Authorization: FIXED LOGIC (sama seperti edit)
+        // Authorization check
+        $canEdit = false;
+        
         if ($user->role === 'supervisi') {
-            if ($project->user_id !== $user->id) {
-                abort(403, 'Anda hanya dapat mengupdate project yang Anda buat sendiri.');
-            }
+            $canEdit = ($project->user_id === $user->id);
+            
+        } elseif ($user->role === 'kabag_pgb') {
+            $canEdit = ($project->user_id === $user->id);
+            
         } elseif ($user->bagian === 'PKJ') {
-            if ($project->user_id !== $user->id) {
-                abort(403, 'Anda hanya dapat mengupdate project yang Anda buat sendiri.');
-            }
-        } else {
-            if ($project->pic_proyek_id !== $user->id) {
-                abort(403, 'Anda hanya dapat mengupdate project yang Anda buat sendiri.');
-            }
+            $projectCreator = $project->creator;
+            $canEdit = ($projectCreator && $projectCreator->bagian === 'PKJ');
+        }
+        
+        if (!$canEdit) {
+            abort(403, 'Anda tidak memiliki akses untuk mengupdate project ini.');
         }
 
-        // Validation dengan custom messages
+        // Validation
         $validated = $request->validate([
             'tanggal_inisiasi' => 'required|date',
             'target_implementasi' => 'required|string|max:255',
@@ -324,20 +682,56 @@ class ProjectController extends Controller
             'sifat_project' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
             'pemilik_project_id' => 'required|exists:divisions,id',
-            'pic_proyek_id' => 'required|exists:users,id',
+            'pic_proyek_ids' => 'required|array|min:1',
+            'pic_proyek_ids.*' => 'exists:users,id',
             'status' => 'required|in:Progress,Pending,Done',
         ], [
-            'urgensi.required' => __('projects.urgency_required'),
-            'sifat_project.required' => __('projects.nature_required'),
-            'pemilik_project_id.required' => __('projects.division_required'),
-            'pic_proyek_id.required' => __('projects.pic_required'),
-            'status.required' => __('projects.status_required'),
+            'pic_proyek_ids.required' => 'PIC wajib dipilih minimal 1 orang',
+            'pic_proyek_ids.min' => 'PIC wajib dipilih minimal 1 orang',
         ]);
 
+        // Validate PIC
+        $picUsers = User::whereIn('id', $validated['pic_proyek_ids'])->get();
+        $projectCreator = $project->creator;
+        
+        if ($projectCreator && $projectCreator->role === 'kabag_pgb') {
+            $invalidPics = $picUsers->where('bagian', '!=', 'PGB')
+                                    ->where('id', '!=', $projectCreator->id);
+            
+            if ($invalidPics->count() > 0) {
+                return back()->withErrors(['pic_proyek_ids' => 'Kabag PGB hanya boleh assign PIC dari bagian PGB'])
+                            ->withInput();
+            }
+            
+        } elseif ($projectCreator && $projectCreator->role === 'perizinan') {
+            $invalidPics = $picUsers->where('bagian', '!=', 'PKJ');
+            
+            if ($invalidPics->count() > 0) {
+                return back()->withErrors(['pic_proyek_ids' => 'PKJ hanya boleh assign PIC dari bagian PKJ'])
+                            ->withInput();
+            }
+        }
+
+        // Backward compatibility
+        $validated['pic_proyek_id'] = $validated['pic_proyek_ids'][0];
+
+        // ✅ IMPORTANT: Preserve pengawas_id (don't overwrite)
+        // Pengawas tetap sama saat update, KECUALI null (baru assign)
+        if (!$project->hasPengawas() && $projectCreator && $projectCreator->role !== 'supervisi') {
+            $kadiv = User::where('role', 'supervisi')->first();
+            if ($kadiv) {
+                $validated['pengawas_id'] = $kadiv->id;
+            }
+        }
+
+        // Update project
         $project->update($validated);
 
+        // Sync PICs
+        $project->pics()->sync($validated['pic_proyek_ids']);
+
         return redirect()->route('projects.show', $project)
-            ->with('success', 'Project berhasil diupdate!');
+            ->with('success', 'Project berhasil diupdate dengan ' . count($validated['pic_proyek_ids']) . ' PIC!');
     }
 
     /**
@@ -347,29 +741,54 @@ class ProjectController extends Controller
     {
         $user = auth()->user();
         
-        // Authorization: FIXED LOGIC
+        // ✅ AUTHORIZATION LOGIC (tetap sama)
+        $canDelete = false;
+        
         if ($user->role === 'supervisi') {
-            // Supervisi HANYA bisa delete project yang dia buat sendiri
-            if ($project->user_id !== $user->id) {
-                abort(403, 'Anda hanya dapat menghapus project yang Anda buat sendiri.');
-            }
+            $canDelete = ($project->user_id === $user->id);
+        } elseif ($user->role === 'kabag_pgb') {
+            $canDelete = ($project->user_id === $user->id);
         } elseif ($user->bagian === 'PKJ') {
-            // PKJ HANYA bisa delete project yang dia buat sendiri
-            if ($project->user_id !== $user->id) {
-                abort(403, 'Anda hanya dapat menghapus project yang Anda buat sendiri.');
-            }
-        } else {
-            // PGB hanya bisa delete project sendiri
-            if ($project->pic_proyek_id !== $user->id) {
-                abort(403, 'Anda hanya dapat menghapus project yang Anda buat sendiri.');
-            }
+            $projectCreator = $project->creator;
+            $canDelete = ($projectCreator && $projectCreator->bagian === 'PKJ');
+        }
+        
+        if (!$canDelete) {
+            return redirect()->route('projects.index')
+                ->with('error', 'Anda tidak memiliki akses untuk menghapus project ini.');
         }
 
-        $namaProject = $project->nama_project;
-        $project->delete();
-
-        return redirect()->route('projects.index')
-            ->with('success', "Project '$namaProject' berhasil dihapus!");
+        try {
+            $namaProject = $project->nama_project;
+            
+            // ✅ Cascade delete will automatically remove pivot table entries
+            $project->delete();
+            
+            // ✅ SMART REDIRECT: Gunakan saved filter dari session
+            $currentFilter = session('projects_current_filter', 'all');
+            $referrer = session('projects_back_url');
+            
+            // Jika dari detail page (ada referrer dari show)
+            if ($referrer && str_contains($referrer, 'filter=my')) {
+                session()->forget('projects_back_url');
+                return redirect()->route('projects.index', ['filter' => 'my'])
+                    ->with('success', "Project '$namaProject' berhasil dihapus!");
+            }
+            
+            if ($referrer && (str_contains($referrer, 'filter=all') || str_contains($referrer, '/projects'))) {
+                session()->forget('projects_back_url');
+                return redirect()->route('projects.index', ['filter' => 'all'])
+                    ->with('success', "Project '$namaProject' berhasil dihapus!");
+            }
+            
+            // ✅ DEFAULT: Gunakan filter yang tersimpan (untuk delete dari list)
+            return redirect()->route('projects.index', ['filter' => $currentFilter])
+                ->with('success', "Project '$namaProject' berhasil dihapus!");
+                
+        } catch (\Exception $e) {
+            return redirect()->route('projects.index')
+                ->with('error', 'Gagal menghapus project: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -385,13 +804,13 @@ class ProjectController extends Controller
         // Authorization & Query Logic
         if ($user->role === 'supervisi') {
             // Supervisi: bisa preview SEMUA project
-            $query = Project::with(['pemilikProject', 'picProyek', 'activities']);
+            $query = Project::with(['pemilikProject', 'pics', 'activities']);
         } 
         elseif ($user->role === 'perizinan') {
             // PKJ: hanya project yang:
             // 1. DIA yang buat (user_id = PKJ), ATAU
             // 2. Ada aktivitas dia di project tersebut
-            $query = Project::with(['pemilikProject', 'picProyek', 'activities'])
+            $query = Project::with(['pemilikProject', 'pics', 'activities'])
                 ->where(function($q) use ($user) {
                     // Project yang DIA BUAT
                     $q->where('user_id', $user->id)
@@ -411,7 +830,7 @@ class ProjectController extends Controller
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('nama_project', 'like', "%{$search}%")
-                ->orWhereHas('picProyek', function($q) use ($search) {
+                ->orWhereHas('pics', function($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%");
                 })
                 ->orWhereHas('pemilikProject', function($q) use ($search) {
@@ -503,10 +922,10 @@ class ProjectController extends Controller
         
         // Authorization & Query Logic
         if ($user->role === 'supervisi') {
-            $query = Project::with(['pemilikProject', 'picProyek', 'activities']);
+            $query = Project::with(['pemilikProject', 'pics', 'activities']);
         } 
         elseif ($user->role === 'perizinan') {
-            $query = Project::with(['pemilikProject', 'picProyek', 'activities'])
+            $query = Project::with(['pemilikProject', 'pics', 'activities'])
                 ->where(function($q) use ($user) {
                     $q->where('user_id', $user->id)
                     ->orWhereHas('activities', function($subQuery) use ($user) {
@@ -523,7 +942,7 @@ class ProjectController extends Controller
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('nama_project', 'like', "%{$search}%")
-                ->orWhereHas('picProyek', function($q) use ($search) {
+                ->orWhereHas('pics', function($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%");
                 })
                 ->orWhereHas('pemilikProject', function($q) use ($search) {
@@ -565,25 +984,38 @@ class ProjectController extends Controller
 
     /**
      * Show export preview for SINGLE project
-     * Accessible by: Supervisi, PKJ (yang buat/kontribusi), dan PGB (PIC/kontributor)
+     * ✅ FIXED: Kabag PGB bisa export project yang melibatkan PGB
      */
     public function singleProjectExportPreview(Project $project)
     {
         $user = auth()->user();
         
-        // Authorization check
+        // ✅ FIXED: Authorization check
         $canExport = false;
         
         if ($user->role === 'supervisi') {
             // Supervisi bisa export semua project
             $canExport = true;
-        } elseif ($user->role === 'perizinan') {
-            // PKJ: bisa export jika dia pembuat ATAU ada aktivitasnya
+            
+        } elseif ($user->role === 'kabag_pgb') {
+            // ✅ FIXED: Kabag PGB bisa export jika:
+            // 1. Project melibatkan PIC dari PGB, ATAU
+            // 2. Ada aktivitas dari user PGB
+            $hasPGBPics = $project->pics->filter(fn($pic) => $pic->bagian === 'PGB')->count() > 0;
+            $hasPGBActivities = $project->activities()->whereHas('user', function($q) {
+                $q->where('bagian', 'PGB');
+            })->exists();
+            
+            $canExport = $hasPGBPics || $hasPGBActivities;
+            
+        } elseif ($user->role === 'perizinan' || ($user->role === 'karyawan' && $user->bagian === 'PKJ')) {
+            // PKJ (Kabag atau Staff): bisa export jika dia pembuat ATAU ada aktivitasnya
             $canExport = $project->user_id === $user->id 
                     || $project->activities()->where('user_id', $user->id)->exists();
+                    
         } elseif ($user->role === 'karyawan' && $user->bagian === 'PGB') {
-            // ✅ PGB: bisa export jika dia PIC ATAU ada aktivitasnya
-            $canExport = $user->id === $project->pic_proyek_id
+            // Staff PGB: bisa export jika dia PIC ATAU ada aktivitasnya
+            $canExport = $user->isPicOf($project->id)
                     || $project->activities()->where('user_id', $user->id)->exists();
         }
         
@@ -594,25 +1026,36 @@ class ProjectController extends Controller
         // Load relationships
         $project->load([
             'pemilikProject', 
-            'picProyek', 
+            'pics', 
+            'creator',
+            'pengawas',
             'activities' => function($query) {
                 $query->with('user')
                     ->orderBy('tanggal_mulai', 'desc');
             }
         ]);
         
-        // Separate activities by bagian
+        // ✅ FIXED: Separate activities by bagian + Superadmin/Kadiv
+        $activitiesSuperadmin = $project->activities->filter(function($activity) {
+            return $activity->user && $activity->user->role === 'supervisi';
+        });
+        
         $activitiesPGB = $project->activities->filter(function($activity) {
-            return $activity->user->bagian === 'PGB';
+            return $activity->user 
+                && $activity->user->bagian === 'PGB'
+                && $activity->user->role !== 'supervisi'; // Exclude Kadiv
         });
         
         $activitiesPKJ = $project->activities->filter(function($activity) {
-            return $activity->user->bagian === 'PKJ';
+            return $activity->user 
+                && $activity->user->bagian === 'PKJ'
+                && $activity->user->role !== 'supervisi'; // Exclude Kadiv
         });
         
         // Stats for this project
         $stats = [
             'total_activities' => $project->activities->count(),
+            'superadmin_activities' => $activitiesSuperadmin->count(),
             'pgb_activities' => $activitiesPGB->count(),
             'pkj_activities' => $activitiesPKJ->count(),
             'progress' => $project->activities->where('status', 'Progress')->count(),
@@ -620,12 +1063,18 @@ class ProjectController extends Controller
             'done' => $project->activities->where('status', 'Done')->count(),
         ];
         
-        return view('projects.single-export-preview', compact('project', 'activitiesPGB', 'activitiesPKJ', 'stats'));
+        return view('projects.single-export-preview', compact(
+            'project', 
+            'activitiesSuperadmin',
+            'activitiesPGB', 
+            'activitiesPKJ', 
+            'stats'
+        ));
     }
 
     /**
      * Export SINGLE project to PDF
-     * Accessible by: Supervisi, PKJ (yang buat/kontribusi), dan PGB (PIC/kontributor)
+     * ✅ FIXED: Kabag PGB bisa export project yang melibatkan PGB
      */
     public function singleProjectExportPdf(Project $project)
     {
@@ -634,19 +1083,27 @@ class ProjectController extends Controller
         
         $user = auth()->user();
         
-        // Authorization check
+        // ✅ FIXED: Authorization check (sama seperti preview)
         $canExport = false;
         
         if ($user->role === 'supervisi') {
-            // Supervisi bisa export semua project
             $canExport = true;
-        } elseif ($user->role === 'perizinan') {
-            // PKJ: bisa export jika dia pembuat ATAU ada aktivitasnya
+            
+        } elseif ($user->role === 'kabag_pgb') {
+            // ✅ FIXED: Kabag PGB bisa export jika melibatkan PGB
+            $hasPGBPics = $project->pics->filter(fn($pic) => $pic->bagian === 'PGB')->count() > 0;
+            $hasPGBActivities = $project->activities()->whereHas('user', function($q) {
+                $q->where('bagian', 'PGB');
+            })->exists();
+            
+            $canExport = $hasPGBPics || $hasPGBActivities;
+            
+        } elseif ($user->role === 'perizinan' || ($user->role === 'karyawan' && $user->bagian === 'PKJ')) {
             $canExport = $project->user_id === $user->id 
                     || $project->activities()->where('user_id', $user->id)->exists();
+                    
         } elseif ($user->role === 'karyawan' && $user->bagian === 'PGB') {
-            // ✅ PGB: bisa export jika dia PIC ATAU ada aktivitasnya
-            $canExport = $user->id === $project->pic_proyek_id
+            $canExport = $user->isPicOf($project->id)
                     || $project->activities()->where('user_id', $user->id)->exists();
         }
         
@@ -657,24 +1114,39 @@ class ProjectController extends Controller
         // Load relationships
         $project->load([
             'pemilikProject', 
-            'picProyek', 
+            'pics', 
+            'creator',
+            'pengawas',
             'activities' => function($query) {
                 $query->with('user')
                     ->orderBy('tanggal_mulai', 'desc');
             }
         ]);
         
-        // Separate activities by bagian
+        // ✅ FIXED: Separate activities by bagian + Superadmin/Kadiv
+        $activitiesSuperadmin = $project->activities->filter(function($activity) {
+            return $activity->user && $activity->user->role === 'supervisi';
+        });
+        
         $activitiesPGB = $project->activities->filter(function($activity) {
-            return $activity->user->bagian === 'PGB';
+            return $activity->user 
+                && $activity->user->bagian === 'PGB'
+                && $activity->user->role !== 'supervisi';
         });
         
         $activitiesPKJ = $project->activities->filter(function($activity) {
-            return $activity->user->bagian === 'PKJ';
+            return $activity->user 
+                && $activity->user->bagian === 'PKJ'
+                && $activity->user->role !== 'supervisi';
         });
         
         // Generate PDF
-        $pdf = Pdf::loadView('pdf.single-project', compact('project', 'activitiesPGB', 'activitiesPKJ'));
+        $pdf = Pdf::loadView('pdf.single-project', compact(
+            'project', 
+            'activitiesSuperadmin',
+            'activitiesPGB', 
+            'activitiesPKJ'
+        ));
         $pdf->setPaper('a4', 'portrait');
         
         $filename = 'project_' . \Str::slug($project->nama_project) . '_' . now()->format('Y-m-d_His') . '.pdf';

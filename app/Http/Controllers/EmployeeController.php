@@ -14,14 +14,22 @@ class EmployeeController extends Controller
      */
     public function index(Request $request)
     {
-        $query = User::whereIn('role', ['karyawan', 'perizinan']);
+        $user = auth()->user();
+        
+        // ✅ UPDATED: Gunakan helper function
+        if (!$user->canAccessEmployees()) {
+            abort(403, 'Unauthorized. You do not have access to employee data.');
+        }
+        
+        // Base query: Exclude Supervisi
+        $query = User::whereIn('role', ['karyawan', 'kabag_pgb', 'perizinan']);
 
         // Search
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                ->orWhere('email', 'like', "%{$search}%");
+                  ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -35,41 +43,91 @@ class EmployeeController extends Controller
             $query->where('bagian', $request->bagian);
         }
 
-        // ✅ FIX: Jangan transform ke object, biarkan tetap User model instance
-        $employees = $query->with(['projects', 'activities'])
-            ->paginate(9);
-        
-        // ✅ TAMBAHKAN: Calculate stats untuk setiap employee
+        // Paginate
+        $employees = $query->paginate(9);
+
+        // ✅ Transform with accurate counts + activity breakdown
         $employees->getCollection()->transform(function ($employee) {
-            $totalActivities = $employee->activities->count();
-            $doneActivities = $employee->activities->where('status', 'Done')->count();
+            // Projects where employee is CREATOR
+            $createdProjectIds = \App\Models\Project::where('user_id', $employee->id)
+                ->pluck('id')->toArray();
             
-            // Attach stats sebagai attribute (tidak destroy object)
-            $employee->total_projects = $employee->projects->count();
+            // Projects where employee is PIC
+            $picProjectIds = \DB::table('project_user')
+                ->where('user_id', $employee->id)
+                ->pluck('project_id')->toArray();
+            
+            // Merge & unique
+            $allProjectIds = array_unique(array_merge($createdProjectIds, $picProjectIds));
+            
+            // Activities CREATED BY this employee
+            $employeeActivities = \App\Models\Activity::where('user_id', $employee->id)->get();
+            
+            $totalActivities = $employeeActivities->count();
+            $completedActivities = $employeeActivities->where('status', 'Done')->count();
+            
+            // ✅ NEW: Activity breakdown by status
+            $activitiesDone = $employeeActivities->where('status', 'Done')->count();
+            $activitiesProgress = $employeeActivities->where('status', 'Progress')->count();
+            $activitiesPending = $employeeActivities->where('status', 'Pending')->count();
+            
+            // Set data
+            $employee->total_projects = count($allProjectIds);
             $employee->total_activities = $totalActivities;
             $employee->completion_rate = $totalActivities > 0 
-                ? round(($doneActivities / $totalActivities) * 100, 1) 
+                ? round(($completedActivities / $totalActivities) * 100, 1) 
                 : 0;
+            
+            // ✅ NEW: Add activity status breakdown
+            $employee->activities_done = $activitiesDone;
+            $employee->activities_progress = $activitiesProgress;
+            $employee->activities_pending = $activitiesPending;
             
             return $employee;
         });
 
-        return view('employees.index', compact('employees'));
+        // ✅ Hitung stats untuk header (dari SEMUA data, bukan paginated)
+        $countKabagPGB = User::where('role', 'kabag_pgb')->count();
+        $countKabagPKJ = User::where('role', 'perizinan')->count();
+        $countKaryawanPGB = User::where('role', 'karyawan')->where('bagian', 'PGB')->count();
+        $countKaryawanPKJ = User::where('role', 'karyawan')->where('bagian', 'PKJ')->count();
+
+        return view('employees.index', compact(
+            'employees',
+            'countKabagPGB',
+            'countKabagPKJ',
+            'countKaryawanPGB',
+            'countKaryawanPKJ'
+        ));
     }
 
     /**
      * Display the specified employee
      */
-     public function show(User $user)
+    public function show(User $user)
     {
+        // ✅ UPDATED: Gunakan helper function
+        if (!auth()->user()->canAccessEmployees()) {
+            abort(403, 'Unauthorized. You do not have access to employee details.');
+        }
+        
         $employee = $user;
         
-        // Load relationships
-        $employee->load(['projects', 'activities.project']);
+        // Load projects (created + as PIC)
+        $projects = \App\Models\Project::where(function($q) use ($employee) {
+                $q->where('user_id', $employee->id)
+                  ->orWhereHas('pics', function($subQ) use ($employee) {
+                      $subQ->where('user_id', $employee->id);
+                  });
+            })
+            ->with(['pemilikProject', 'pics', 'activities'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        $employee->load(['activities.project']);
 
-        // Calculate statistics
         $stats = [
-            'total_projects' => $employee->projects->count(),
+            'total_projects' => $projects->count(),
             'total_activities' => $employee->activities->count(),
             'progress' => $employee->activities->where('status', 'Progress')->count(),
             'done' => $employee->activities->where('status', 'Done')->count(),
@@ -77,16 +135,15 @@ class EmployeeController extends Controller
             'completion_rate' => $this->calculateCompletionRate($employee),
             'productivity_score' => $this->calculateProductivityScore($employee),
             'avg_completion_time' => $this->calculateAverageCompletionTime($employee),
-            'active_projects' => $employee->projects->where('status', 'Progress')->count(),
+            'active_projects' => $projects->where('status', 'Progress')->count(),
         ];
 
-        // Get activities sorted by date
         $activities = $employee->activities()
             ->with('project')
             ->orderBy('tanggal_mulai', 'desc')
             ->get();
 
-        return view('employees.show', compact('employee', 'stats', 'activities'));
+        return view('employees.show', compact('employee', 'stats', 'activities', 'projects'));
     }
 
     /**
@@ -96,7 +153,6 @@ class EmployeeController extends Controller
     {
         $employee = User::with('activities')->findOrFail($id);
 
-        // Get last 6 months data
         $months = [];
         $activitiesData = [];
         
@@ -121,67 +177,80 @@ class EmployeeController extends Controller
         ]);
     }
 
-
     /**
      * Show export preview for employee report
      */
     public function exportPreview(User $user)
     {
-        // Authorization
-        if (auth()->user()->role !== 'supervisi') {
+        // ✅ UPDATED: Gunakan helper function
+        if (!auth()->user()->canExport()) {
             abort(403, 'Unauthorized action.');
         }
 
         $employee = $user;
-        $employee->load(['projects.activities']);
+        
+        $projects = \App\Models\Project::where(function($q) use ($employee) {
+                $q->where('user_id', $employee->id)
+                  ->orWhereHas('pics', function($subQ) use ($employee) {
+                      $subQ->where('user_id', $employee->id);
+                  });
+            })
+            ->with(['pemilikProject', 'pics', 'activities'])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         $stats = [
-            'total_projects' => $employee->projects->count(),
+            'total_projects' => $projects->count(),
             'total_activities' => $employee->activities->count(),
             'completion_rate' => $this->calculateCompletionRate($employee),
         ];
 
-        return view('employees.export-preview', compact('employee', 'stats'));
+        return view('employees.export-preview', compact('employee', 'stats', 'projects'));
     }
 
     /**
      * Export employee report to PDF
+     * ✅ FIXED: Gunakan $projects variable yang sudah di-query, bukan $employee->projects
      */
     public function exportPdf(User $user)
     {
         \App::setLocale('id');
         
-        if (auth()->user()->role !== 'supervisi') {
+        // ✅ UPDATED: Gunakan helper function
+        if (!auth()->user()->canExport()) {
             abort(403, 'Unauthorized action.');
         }
 
         $employee = $user;
-        $employee->load([
-            'projects' => function ($query) {
-                $query->with(['pemilikProject', 'activities']);
-            },
-            'activities' => function ($query) {
-                $query->with('project')->orderBy('created_at', 'desc')->limit(10);
-            }
-        ]);
+        
+        // ✅ Query projects (created + as PIC)
+        $projects = \App\Models\Project::where(function($q) use ($employee) {
+                $q->where('user_id', $employee->id)
+                ->orWhereHas('pics', function($subQ) use ($employee) {
+                    $subQ->where('user_id', $employee->id);
+                });
+            })
+            ->with(['pemilikProject', 'pics', 'activities'])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        // Calculate statistics
+        // ✅ FIXED: Gunakan $projects yang sudah di-query, BUKAN $employee->projects
         $stats = [
-            'total_projects' => $employee->projects->count(),
+            'total_projects' => $projects->count(),  // ✅ FIXED: Pakai $projects
             'total_activities' => $employee->activities->count(),
             
-            'projects_progress' => $employee->projects->where('status', 'Progress')->count(),
-            'projects_done' => $employee->projects->where('status', 'Done')->count(),
-            'projects_pending' => $employee->projects->where('status', 'Pending')->count(),
+            // ✅ FIXED: Hitung status projects dari $projects yang sudah di-query
+            'projects_progress' => $projects->where('status', 'Progress')->count(),
+            'projects_done' => $projects->where('status', 'Done')->count(),
+            'projects_pending' => $projects->where('status', 'Pending')->count(),
             
-            'activities_progress' => Activity::where('user_id', $employee->id)
-                ->where('status', 'Progress')->count(),
-            'activities_done' => Activity::where('user_id', $employee->id)
-                ->where('status', 'Done')->count(),
-            'activities_pending' => Activity::where('user_id', $employee->id)
-                ->where('status', 'Pending')->count(),
+            // ✅ Activities status (sudah benar)
+            'activities_progress' => Activity::where('user_id', $employee->id)->where('status', 'Progress')->count(),
+            'activities_done' => Activity::where('user_id', $employee->id)->where('status', 'Done')->count(),
+            'activities_pending' => Activity::where('user_id', $employee->id)->where('status', 'Pending')->count(),
         ];
 
+        // ✅ Completion rates
         $totalActivities = Activity::where('user_id', $employee->id)->count();
         $doneActivities = $stats['activities_done'];
         $stats['completion_rate'] = $totalActivities > 0 
@@ -192,14 +261,16 @@ class EmployeeController extends Controller
             ? round(($stats['projects_done'] / $stats['total_projects']) * 100, 1)
             : 0;
 
+        // ✅ Recent activities
         $recentActivities = Activity::where('user_id', $employee->id)
             ->with('project')
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();
 
-        $pdf = Pdf::loadView('pdf.employee-report', compact('employee', 'stats', 'recentActivities'));
-        $pdf->setPaper('a4', 'portrait');
+        // ✅ IMPORTANT: Pass $projects to PDF view
+        $pdf = Pdf::loadView('pdf.employee-report', compact('employee', 'stats', 'recentActivities', 'projects'));
+        $pdf->setPaper('a4', 'landscape');
         
         $filename = 'employee_report_' . str_replace(' ', '_', strtolower($employee->name)) . '_' . now()->format('Y-m-d') . '.pdf';
         
@@ -224,9 +295,8 @@ class EmployeeController extends Controller
 
     /**
      * Calculate productivity score
-     * Based on: completed activities / total days since first activity
      */
-     private function calculateProductivityScore($employee)
+    private function calculateProductivityScore($employee)
     {
         $activities = $employee->activities;
         
@@ -236,7 +306,6 @@ class EmployeeController extends Controller
         
         $completedActivities = $activities->where('status', 'Done')->count();
         
-        // Get date range
         $firstActivity = $activities->min('tanggal_mulai');
         $lastActivity = $activities->max('tanggal_mulai');
         
@@ -257,7 +326,6 @@ class EmployeeController extends Controller
 
     /**
      * Calculate average completion time
-     * Average days between start and finish for completed activities
      */
     private function calculateAverageCompletionTime($employee)
     {
@@ -287,12 +355,10 @@ class EmployeeController extends Controller
         return round($totalDays / $count, 1);
     }
 
-
     public function performanceData(User $user)
     {
         $employee = $user;
         
-        // Get last 6 months
         $months = [];
         $activities = [];
         
@@ -309,7 +375,6 @@ class EmployeeController extends Controller
             $activities[] = $count;
         }
         
-        // Get activity status breakdown
         $done = Activity::where('user_id', $employee->id)->where('status', 'Done')->count();
         $progress = Activity::where('user_id', $employee->id)->where('status', 'Progress')->count();
         $pending = Activity::where('user_id', $employee->id)->where('status', 'Pending')->count();
@@ -322,5 +387,4 @@ class EmployeeController extends Controller
             'pending' => $pending
         ]);
     }
-
 }

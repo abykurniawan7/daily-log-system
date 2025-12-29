@@ -20,6 +20,84 @@
                 ['label' => __('activities.add_new_activity')]
             ]" />
             
+            {{-- ✅ REVISED: Info Helper dengan Multi-language Support --}}
+            @if(auth()->user()->role === 'supervisi')
+                <div class="mb-4 p-4 bg-red-50 border-l-4 border-red-400 rounded-md">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        <div class="ml-3">
+                            <p class="text-sm text-red-700 font-semibold mb-2">
+                                {{ __('activities.kadiv_helper_title') }}
+                            </p>
+                            <ul class="text-sm text-red-700 list-disc list-inside space-y-1">
+                                <li>{{ __('activities.kadiv_helper_1') }}</li>
+                                <li>{{ __('activities.kadiv_helper_2') }}</li>
+                                <li>{{ __('activities.kadiv_helper_3') }}</li>
+                                <li>
+                                    {{ __('activities.kadiv_helper_4') }} 
+                                    <a href="{{ route('activities.index') }}" class="underline font-semibold hover:text-red-900">
+                                        {{ __('activities.kadiv_helper_link') }}
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            @elseif(auth()->user()->role === 'kabag_pgb')
+                <div class="mb-4 p-4 bg-green-50 border-l-4 border-green-400 rounded-md">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        <div class="ml-3">
+                            <p class="text-sm text-green-700">
+                                <span class="font-semibold">{{ __('activities.kabag_pgb_helper_title') }}</span>
+                            </p>
+                            <p class="text-sm text-green-700 mt-1">
+                                {{ __('activities.kabag_pgb_helper_text') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            @elseif(auth()->user()->role === 'perizinan')
+                <div class="mb-4 p-4 bg-purple-50 border-l-4 border-purple-400 rounded-md">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        <div class="ml-3">
+                            <p class="text-sm text-purple-700">
+                                <span class="font-semibold">{{ __('activities.perizinan_helper_title') }}</span>
+                            </p>
+                            <p class="text-sm text-purple-700 mt-1">
+                                {{ __('activities.perizinan_helper_text') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            @elseif(auth()->user()->role === 'karyawan')
+                <div class="mb-4 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-md">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        <div class="ml-3">
+                            <p class="text-sm text-blue-700">
+                                <span class="font-semibold">{{ __('activities.karyawan_helper_title') }}</span>
+                            </p>
+                            <p class="text-sm text-blue-700 mt-1">
+                                {{ __('activities.karyawan_helper_text') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            @endif
+            
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
                     <form action="{{ route('activities.store') }}" method="POST" enctype="multipart/form-data" data-loading="true">
@@ -105,10 +183,18 @@
                                         required
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0F5132] focus:ring-[#0F5132] @error('jenis_kegiatan') border-red-500 @enderror">
                                     <option value="" disabled selected hidden>{{ __('activities.select_activity_type') }}</option>
-                                    <option value="Meeting" {{ old('jenis_kegiatan') == 'Meeting' ? 'selected' : '' }}>Meeting</option>
-                                    <option value="Coding" {{ old('jenis_kegiatan') == 'Coding' ? 'selected' : '' }}>Coding</option>
-                                    <option value="Dokumentasi" {{ old('jenis_kegiatan') == 'Dokumentasi' ? 'selected' : '' }}>Dokumentasi</option>
-                                    <option value="Support" {{ old('jenis_kegiatan') == 'Support' ? 'selected' : '' }}>Support</option>
+                                    <option value="Meeting" {{ old('jenis_kegiatan') == 'Meeting' ? 'selected' : '' }}>
+                                        {{ __('activities.activity_type_meeting') }}
+                                    </option>
+                                    <option value="Coding" {{ old('jenis_kegiatan') == 'Coding' ? 'selected' : '' }}>
+                                        {{ __('activities.activity_type_coding') }}
+                                    </option>
+                                    <option value="Dokumentasi" {{ old('jenis_kegiatan') == 'Dokumentasi' ? 'selected' : '' }}>
+                                        {{ __('activities.activity_type_documentation') }}
+                                    </option>
+                                    <option value="Support" {{ old('jenis_kegiatan') == 'Support' ? 'selected' : '' }}>
+                                        {{ __('activities.activity_type_support') }}
+                                    </option>
                                     <option value="Lainnya" {{ old('jenis_kegiatan') != '' && !in_array(old('jenis_kegiatan'), ['Meeting', 'Coding', 'Dokumentasi', 'Support']) ? 'selected' : '' }}>
                                         {{ __('activities.others') }}
                                     </option>
@@ -239,7 +325,7 @@
                                             </p>
                                         </div>
                                         
-                                        <!-- ✅ File Preview Area -->
+                                        <!-- File Preview Area -->
                                         <div id="file-preview" class="mt-4 hidden">
                                             <div class="inline-flex items-center px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
                                                 <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -263,7 +349,7 @@
                                     @enderror
                                 </div>
 
-                                <!-- Link URL Tab - ✅ BEBAS TANPA BATASAN -->
+                                <!-- Link URL Tab -->
                                 <div x-show="lampiranType === 'link'"
                                     x-transition:enter="transition ease-out duration-200"
                                     x-transition:enter-start="opacity-0 transform -translate-y-2"
@@ -301,11 +387,9 @@
         </div>
     </div>
 
-    {{-- JavaScript untuk Select2 with Tags (taruh di @push('scripts')) --}}
     @push('scripts')
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // ===== EXISTING CODE - JANGAN HAPUS =====
         const jenisSelect = document.getElementById('jenis_kegiatan_select');
         const jenisOthers = document.getElementById('jenis_kegiatan_others');
         const jenisHidden = document.getElementById('jenis_kegiatan');
@@ -332,7 +416,6 @@
         updateJenisKegiatan();
     });
 
-    // ===== ✅ NEW CODE - FILE PREVIEW =====
     function displayFileName(input) {
         const filePreview = document.getElementById('file-preview');
         const fileName = document.getElementById('file-name');
@@ -342,7 +425,6 @@
             const file = input.files[0];
             fileName.textContent = file.name;
             
-            // Format file size
             const size = file.size;
             let sizeText;
             if (size < 1024) {

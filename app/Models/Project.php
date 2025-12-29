@@ -20,6 +20,7 @@ class Project extends Model
         'deskripsi',
         'pemilik_project_id',
         'pic_proyek_id',
+        'pengawas_id', // ✅ NEW: Pengawas Project (Kadiv)
         'status',
         'user_id',
     ];
@@ -39,24 +40,19 @@ class Project extends Model
         });
     }
 
-    // ✅ METHOD 1: getRouteKeyName (untuk URL generation)
     public function getRouteKeyName()
     {
         return 'uuid';
     }
     
-    // ✅ METHOD 2: resolveRouteBinding (untuk resolve dari URL)
     public function resolveRouteBinding($value, $field = null)
     {
-        // Jika field di-specify, gunakan field tersebut
         if ($field) {
             return $this->where($field, $value)->firstOrFail();
         }
         
-        // Coba resolve by UUID dulu
         $result = $this->where('uuid', $value)->first();
         
-        // Fallback ke ID jika UUID tidak ketemu (backward compatibility)
         if (!$result && is_numeric($value)) {
             $result = $this->where('id', $value)->first();
         }
@@ -68,7 +64,10 @@ class Project extends Model
         return $result;
     }
 
-    // Relationships
+    // ==========================================
+    // RELATIONSHIPS
+    // ==========================================
+
     public function pemilikProject()
     {
         return $this->belongsTo(Division::class, 'pemilik_project_id');
@@ -79,6 +78,15 @@ class Project extends Model
         return $this->belongsTo(User::class, 'pic_proyek_id');
     }
 
+    /**
+     * ✅ NEW: Pengawas Project (Kadiv/Supervisor)
+     * Auto-assigned untuk setiap project yang dibuat (bukan oleh Kadiv)
+     */
+    public function pengawas()
+    {
+        return $this->belongsTo(User::class, 'pengawas_id');
+    }
+
     public function activities()
     {
         return $this->hasMany(Activity::class, 'project_uuid', 'uuid');
@@ -87,5 +95,58 @@ class Project extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Multi-PIC Relationships
+     */
+    public function pics()
+    {
+        return $this->belongsToMany(User::class, 'project_user')
+                    ->withPivot('role_type')
+                    ->withTimestamps();
+    }
+
+    public function primaryPic()
+    {
+        return $this->pics()->first();
+    }
+
+    public function syncPics(array $userIds)
+    {
+        $this->pics()->sync($userIds);
+    }
+
+    public function addPic($userId)
+    {
+        if (!$this->pics()->where('user_id', $userId)->exists()) {
+            $this->pics()->attach($userId, ['role_type' => 'pic']);
+        }
+    }
+
+    public function removePic($userId)
+    {
+        $this->pics()->detach($userId);
+    }
+
+    public function hasPic($userId)
+    {
+        return $this->pics()->where('user_id', $userId)->exists();
+    }
+
+    /**
+     * ✅ NEW: Helper - Check if project has Pengawas
+     */
+    public function hasPengawas()
+    {
+        return !is_null($this->pengawas_id);
+    }
+
+    /**
+     * ✅ NEW: Helper - Check if user is the Pengawas
+     */
+    public function isPengawas($userId)
+    {
+        return $this->pengawas_id === $userId;
     }
 }

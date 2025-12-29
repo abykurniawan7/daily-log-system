@@ -37,19 +37,28 @@
                     <h3 class="text-lg font-semibold mb-2">{{ __('projects.project_report') }}</h3>
                     <p class="text-sm opacity-90 mb-4">{{ __('projects.preview_export_data') }}</p>
                     
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {{-- Baris 1: Total + Bagian (Supervisi, PGB, PKJ) --}}
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
                         <div class="bg-white/20 rounded-lg p-4 backdrop-blur-sm">
                             <p class="text-xs opacity-90 mb-1">{{ __('projects.total_activities') }}</p>
                             <p class="text-2xl font-bold">{{ $stats['total_activities'] }}</p>
                         </div>
                         <div class="bg-white/20 rounded-lg p-4 backdrop-blur-sm">
-                            <p class="text-xs opacity-90 mb-1">PGB {{ __('projects.total_activities') }}</p>
+                            <p class="text-xs opacity-90 mb-1">Supervisi</p>
+                            <p class="text-2xl font-bold">{{ $stats['superadmin_activities'] }}</p>
+                        </div>
+                        <div class="bg-white/20 rounded-lg p-4 backdrop-blur-sm">
+                            <p class="text-xs opacity-90 mb-1">PGB</p>
                             <p class="text-2xl font-bold">{{ $stats['pgb_activities'] }}</p>
                         </div>
                         <div class="bg-white/20 rounded-lg p-4 backdrop-blur-sm">
-                            <p class="text-xs opacity-90 mb-1">PKJ {{ __('projects.total_activities') }}</p>
+                            <p class="text-xs opacity-90 mb-1">PKJ</p>
                             <p class="text-2xl font-bold">{{ $stats['pkj_activities'] }}</p>
                         </div>
+                    </div>
+
+                    {{-- Baris 2: Status (Progress, Pending, Done) --}}
+                    <div class="grid grid-cols-3 gap-4">
                         <div class="bg-white/20 rounded-lg p-4 backdrop-blur-sm">
                             <p class="text-xs opacity-90 mb-1">{{ __('projects.progress') }}</p>
                             <p class="text-2xl font-bold">{{ $stats['progress'] }}</p>
@@ -152,6 +161,64 @@
                 </div>
             </div>
 
+            {{-- ✅ NEW: Activities Supervisi --}}
+            @if($activitiesSuperadmin->count() > 0)
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6">
+                    <h3 class="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-red-800"></span>
+                        Supervisi ({{ $activitiesSuperadmin->count() }})
+                    </h3>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th style="width: 5%;" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ __('projects.no') }}</th>
+                                    <th style="width: 30%;" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ __('projects.activity_name') }}</th>
+                                    <th style="width: 20%;" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ __('projects.date') }}</th>
+                                    <th style="width: 15%;" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ __('projects.status') }}</th>
+                                    <th style="width: 30%;" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ __('projects.person_in_charge') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                @foreach($activitiesSuperadmin->values() as $activity)
+                                    <tr>
+                                        <td class="px-4 py-2 text-sm text-gray-900">{{ $loop->iteration }}</td>
+                                        <td class="px-4 py-2 text-sm text-gray-900">{{ $activity->nama_aktivitas }}</td>
+                                        <td class="px-4 py-2 text-sm text-gray-600 whitespace-nowrap">
+                                            {{ $activity->tanggal_mulai->format('d M Y') }}
+                                            @if($activity->tanggal_selesai)
+                                                <br><small>{{ __('activities.until') }} {{ $activity->tanggal_selesai->format('d M Y') }}</small>
+                                            @endif
+                                        </td>
+                                        <td class="px-4 py-2">
+                                            @php
+                                                $statusColors = [
+                                                    'Progress' => 'bg-blue-100 text-blue-800',
+                                                    'Pending' => 'bg-yellow-100 text-yellow-800',
+                                                    'Done' => 'bg-green-100 text-green-800'
+                                                ];
+                                                $statusLabels = [
+                                                    'Progress' => __('projects.in_progress'),
+                                                    'Pending' => __('projects.pending_status'),
+                                                    'Done' => __('projects.completed')
+                                                ];
+                                            @endphp
+                                            <span class="px-2 py-1 inline-flex text-xs font-semibold rounded-full {{ $statusColors[$activity->status] }}">
+                                                {{ $statusLabels[$activity->status] }}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-2 text-sm text-gray-900">{{ $activity->user->name }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             {{-- Activities PGB --}}
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
@@ -165,11 +232,11 @@
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ __('projects.no') }}</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ __('projects.activity_name') }}</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ __('projects.date') }}</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ __('projects.status') }}</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ __('projects.person_in_charge') }}</th>
+                                        <th style="width: 5%;" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ __('projects.no') }}</th>
+                                        <th style="width: 30%;" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ __('projects.activity_name') }}</th>
+                                        <th style="width: 20%;" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ __('projects.date') }}</th>
+                                        <th style="width: 15%;" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ __('projects.status') }}</th>
+                                        <th style="width: 30%;" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ __('projects.person_in_charge') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
@@ -225,11 +292,11 @@
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ __('projects.no') }}</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ __('projects.activity_name') }}</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ __('projects.date') }}</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ __('projects.status') }}</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ __('projects.person_in_charge') }}</th>
+                                        <th style="width: 5%;" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ __('projects.no') }}</th>
+                                        <th style="width: 30%;" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ __('projects.activity_name') }}</th>
+                                        <th style="width: 20%;" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ __('projects.date') }}</th>
+                                        <th style="width: 15%;" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ __('projects.status') }}</th>
+                                        <th style="width: 30%;" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ __('projects.person_in_charge') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">

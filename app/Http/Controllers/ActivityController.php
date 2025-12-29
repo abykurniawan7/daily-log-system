@@ -8,14 +8,22 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
-use App\Helpers\LogActivity; // ✅ TAMBAHAN: Import helper
+use App\Helpers\LogActivity;
 use App\Helpers\QueryOptimizer;
 
 class ActivityController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Check if user can export activities
      */
+    private function canExportActivities($user): bool
+    {
+        return $user->role === 'supervisi' ||
+            $user->role === 'kabag_pgb' ||
+            $user->role === 'perizinan' ||
+            ($user->role === 'karyawan' && in_array($user->bagian, ['PKJ', 'PGB']));
+    }
+    
     public function index(Request $request)
     {
         $user = auth()->user();
@@ -23,27 +31,38 @@ class ActivityController extends Controller
         // Base query
         $query = Activity::with(['project.pemilikProject', 'user']);
         
-        // Filter berdasarkan role
+        // ✅ UPDATED: Filter berdasarkan role (PKJ bisa lihat SEMUA aktivitas PKJ)
         if ($user->role === 'supervisi') {
             // Supervisi: lihat semua aktivitas
             // Tidak ada filter tambahan
-        } elseif ($user->role === 'perizinan') {
-            // Perizinan: bisa switch view antara PKJ dan PGB
-            $viewBagian = $request->get('view_bagian', 'PKJ'); // Default: PKJ
             
-            if ($viewBagian === 'PGB') {
-                // Lihat aktivitas dari user dengan bagian PGB
-                $query->whereHas('user', function($q) {
-                    $q->where('bagian', 'PGB');
+        } elseif ($user->role === 'kabag_pgb') {
+            $query->where(function($q) use ($user) {
+                // 1. Karyawan PGB (exclude self)
+                $q->whereHas('user', function($userQuery) use ($user) {
+                    $userQuery->where('role', 'karyawan')
+                            ->where('bagian', 'PGB')
+                            ->where('id', '!=', $user->id);
+                })
+                // 2. PKJ di project milik Kabag PGB
+                ->orWhere(function($pkjQuery) use ($user) {
+                    $pkjQuery->whereHas('user', function($u) {
+                        $u->where('bagian', 'PKJ');
+                    })
+                    ->whereHas('project', function($p) use ($user) {
+                        $p->where('user_id', $user->id);
+                    });
                 });
-            } else {
-                // Lihat aktivitas dari user dengan bagian PKJ (termasuk diri sendiri)
-                $query->whereHas('user', function($q) {
-                    $q->where('bagian', 'PKJ');
-                });
-            }
+            });
+            
+        } elseif ($user->role === 'perizinan' || ($user->role === 'karyawan' && $user->bagian === 'PKJ')) {
+            // ✅ PKJ (Kabag + Staff): Lihat SEMUA aktivitas PKJ
+            $query->whereHas('user', function($q) {
+                $q->where('bagian', 'PKJ');
+            });
+            
         } else {
-            // Karyawan (PGB): hanya lihat aktivitas sendiri
+            // ✅ Staff PGB: hanya lihat aktivitas sendiri
             $query->where('user_id', $user->id);
         }
         
@@ -127,16 +146,32 @@ class ActivityController extends Controller
         // ========== PAGINATION ==========
         $activities = $query->paginate(10)->withQueryString();
         
-        // ========== QUICK STATS ==========
+        // ✅ UPDATED: Quick stats (PKJ lihat semua stats PKJ)
         $statsQuery = Activity::query();
         
         // Apply same role filter untuk stats
         if ($user->role === 'supervisi') {
             // All activities
-        } elseif ($user->role === 'perizinan') {
-            $viewBagian = $request->get('view_bagian', 'PKJ');
-            $statsQuery->whereHas('user', function($q) use ($viewBagian) {
-                $q->where('bagian', $viewBagian);
+        } elseif ($user->role === 'kabag_pgb') {
+            $statsQuery->where(function($q) use ($user) {
+                $q->whereHas('user', function($userQuery) use ($user) {
+                    $userQuery->where('role', 'karyawan')
+                            ->where('bagian', 'PGB')
+                            ->where('id', '!=', $user->id);
+                })
+                ->orWhere(function($pkjQuery) use ($user) {
+                    $pkjQuery->whereHas('user', function($u) {
+                        $u->where('bagian', 'PKJ');
+                    })
+                    ->whereHas('project', function($p) use ($user) {
+                        $p->where('user_id', $user->id);
+                    });
+                });
+            });
+        } elseif ($user->role === 'perizinan' || ($user->role === 'karyawan' && $user->bagian === 'PKJ')) {
+            // PKJ: stats untuk semua aktivitas PKJ
+            $statsQuery->whereHas('user', function($q) {
+                $q->where('bagian', 'PKJ');
             });
         } else {
             $statsQuery->where('user_id', $user->id);
@@ -162,26 +197,80 @@ class ActivityController extends Controller
     {
         $user = auth()->user();
         
-        // Supervisi TIDAK bisa tambah aktivitas
+        // ✅ SAVE REFERRER: Simpan dari mana user datang
+        $referrer = $request->headers->get('referer');
+        session(['activity_referrer' => $referrer]);
+        
+        // ✅ PERBAIKAN: Kadiv BISA tambah aktivitas dengan 2 cara:
+        // 1. Dari detail project (dengan project_id)
+        // 2. Dari halaman Aktivitas Saya (tanpa project_id, pilih manual)
+        
         if ($user->role === 'supervisi') {
-            abort(403, __('activities.supervisi_cannot_add'));
+            // Ambil project_id dari query parameter (jika ada)
+            $requestedProjectId = $request->query('project_id');
+            
+            if ($requestedProjectId) {
+                // ✅ SCENARIO 1: Dari detail project - Validasi project milik Kadiv
+                $project = Project::find($requestedProjectId);
+                
+                if (!$project || $project->user_id !== $user->id) {
+                    return redirect()->route('activities.my-activities')
+                        ->with('error', 'Sebagai Kadiv, Anda hanya dapat menambah aktivitas di project yang Anda buat sendiri.');
+                }
+            }
+            
+            // ✅ SCENARIO 2: Dari Aktivitas Saya - Tampilkan semua project yang dia buat
+            $projects = Project::with('pemilikProject')
+                ->where('user_id', $user->id)
+                ->where('status', '!=', 'Done')
+                ->orderBy('nama_project')
+                ->get();
+            
+            // Jika tidak ada project sama sekali
+            if ($projects->isEmpty()) {
+                return redirect()->route('activities.my-activities')
+                    ->with('error', 'Anda belum memiliki project. Silakan buat project terlebih dahulu untuk menambah aktivitas.');
+            }
+            
+            $selectedProjectId = $requestedProjectId;
+            
+            return view('activities.create', compact('projects', 'selectedProjectId'));
         }
         
         // Ambil project_id dari query parameter jika ada
         $selectedProjectId = $request->query('project_id');
         
-        // Query projects berdasarkan role + FILTER HANYA PROJECT AKTIF
-        if ($user->role === 'perizinan') {
+        // ✅ EXISTING: Query projects berdasarkan role (kabag_pgb, perizinan, karyawan)
+        if ($user->role === 'kabag_pgb') {
+            $projects = Project::with('pemilikProject')
+                ->where('status', '!=', 'Done')
+                ->whereHas('pics', function($q) {
+                    $q->where('users.bagian', 'PGB');
+                })
+                ->orderBy('nama_project')
+                ->get();
+                
+        } elseif ($user->role === 'perizinan') {
             $projects = Project::with('pemilikProject')
                 ->where('status', '!=', 'Done')
                 ->orderBy('nama_project')
                 ->get();
+                
         } else {
+            // PGB Staff
             $projects = Project::with('pemilikProject')
-                ->where('pic_proyek_id', $user->id)
                 ->where('status', '!=', 'Done')
+                ->whereHas('pics', function($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                })
                 ->orderBy('nama_project')
                 ->get();
+            
+            // ✅ TAMBAHAN: Validasi jika PGB Staff tidak punya project
+            if ($projects->isEmpty()) {
+                return redirect()->route('activities.my-activities')
+                    ->with('error', __('activities.no_project_assigned'));
+            }
         }
         
         // Validasi jika project_id di-set tapi tidak valid
@@ -202,6 +291,34 @@ class ActivityController extends Controller
      */
     public function store(Request $request)
     {
+        $user = auth()->user();
+
+        // ✅ PERBAIKAN: Validasi Kadiv lebih fleksibel
+        if ($user->role === 'supervisi') {
+            $projectId = $request->input('project_id');
+            $project = Project::find($projectId);
+            
+            if (!$project || $project->user_id !== $user->id) {
+                return back()
+                    ->withInput()
+                    ->withErrors(['project_id' => 'Sebagai Kadiv, Anda hanya dapat menambah aktivitas di project yang Anda buat sendiri.']);
+            }
+        }
+
+        if ($user->role === 'karyawan' && $user->bagian === 'PGB') {
+            $hasProject = Project::where('status', '!=', 'Done')
+                ->whereHas('pics', function($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                })
+                ->exists();
+            
+            if (!$hasProject) {
+                return back()
+                    ->withInput()
+                    ->withErrors(['project_id' => __('activities.no_project_assigned')]);
+            }
+        }
+
         $validated = $request->validate([
             'project_id' => 'required|exists:projects,id',
             'tanggal_mulai' => 'required|date',
@@ -263,6 +380,17 @@ class ActivityController extends Controller
 
         QueryOptimizer::clearUserCache(auth()->id());
         
+        // ✅ SMART REDIRECT: Cek dari mana user berasal
+        $referrer = session('activity_referrer');
+        session()->forget('activity_referrer');
+        
+        // Jika dari detail project (URL mengandung /projects/)
+        if ($referrer && str_contains($referrer, '/projects/')) {
+            return redirect()->route('projects.show', $activity->project_id)
+                ->with('success', __('activities.activity_added_success'));
+        }
+        
+        // Default: Kembali ke My Activities
         return redirect()->route('activities.my-activities')
             ->with('success', __('activities.activity_added_success'));
     }
@@ -275,8 +403,8 @@ class ActivityController extends Controller
         $user = auth()->user();
         
         // Authorization logic
-        if ($user->role === 'supervisi') {
-            // Allow view
+        if ($user->role === 'supervisi' || $user->role === 'kabag_pgb') {
+            // Allow view all
         }
         elseif ($user->bagian === 'PKJ') {
             // Allow view all
@@ -290,34 +418,61 @@ class ActivityController extends Controller
             }
         }
         
-        $activity->load(['project.pemilikProject', 'project.picProyek', 'user']);
+        // ✅ UPDATED: Load pics instead of picProyek
+        $activity->load(['project.pemilikProject', 'project.pics', 'user']);
         
         return view('activities.show', compact('activity'));
     }
 
-   /**
+    /**
      * Show the form for editing the specified resource.
      */
     public function edit(Activity $activity)
     {
         $user = auth()->user();
         
-        // Supervisi TIDAK BISA edit aktivitas
+        // ✅ SAVE REFERRER: Simpan dari mana user datang
+        $referrer = request()->headers->get('referer');
+        session(['activity_referrer' => $referrer]);
+        
+        // ✅ PERBAIKAN: Supervisi BISA edit aktivitas yang DIA BUAT SENDIRI
         if ($user->role === 'supervisi') {
-            abort(403, __('activities.supervisi_cannot_edit'));
-        }
-        
-        // Hanya bisa edit aktivitas sendiri
-        if ($user->id !== $activity->user_id) {
-            abort(403, __('activities.can_only_edit_own'));
-        }
-        
-        // Query projects berdasarkan role
-        if ($user->role === 'perizinan') {
-            $projects = Project::with('pemilikProject')->get();
+            // Supervisi hanya bisa edit aktivitas yang dia buat sendiri
+            if ($user->id !== $activity->user_id) {
+                abort(403, 'Sebagai Supervisi, Anda hanya dapat mengedit aktivitas yang Anda buat sendiri.');
+            }
         } else {
+            // Non-supervisi: Hanya bisa edit aktivitas sendiri
+            if ($user->id !== $activity->user_id) {
+                abort(403, __('activities.can_only_edit_own'));
+            }
+        }
+        
+        // ✅ Query projects berdasarkan role (+ kabag_pgb + multi-PIC)
+        if ($user->role === 'supervisi') {
+            // ✅ Supervisi: Hanya project yang dia buat
             $projects = Project::with('pemilikProject')
-                ->where('pic_proyek_id', $user->id)
+                ->where('user_id', $user->id)
+                ->get();
+                
+        } elseif ($user->role === 'kabag_pgb') {
+            // Kabag PGB: semua project PGB
+            $projects = Project::with('pemilikProject')
+                ->whereHas('pics', function($q) {
+                    $q->where('bagian', 'PGB');
+                })
+                ->get();
+                
+        } elseif ($user->role === 'perizinan') {
+            // PKJ: semua project
+            $projects = Project::with('pemilikProject')->get();
+            
+        } else {
+            // PGB Staff: project assigned via pivot
+            $projects = Project::with('pemilikProject')
+                ->whereHas('pics', function($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                })
                 ->get();
         }
         
@@ -330,6 +485,18 @@ class ActivityController extends Controller
     public function update(Request $request, Activity $activity)
     {
         $user = auth()->user();
+        
+        if ($user->role === 'supervisi') {
+            // Supervisi hanya bisa update aktivitas yang dia buat sendiri
+            if ($user->id !== $activity->user_id) {
+                abort(403, 'Sebagai Supervisi, Anda hanya dapat mengupdate aktivitas yang Anda buat sendiri.');
+            }
+        } else {
+            // Non-supervisi: Hanya bisa update aktivitas sendiri
+            if ($user->id !== $activity->user_id) {
+                abort(403, __('activities.can_only_edit_own'));
+            }
+        }
         
         // Simpan old values
         $oldValues = $activity->only([
@@ -399,7 +566,18 @@ class ActivityController extends Controller
 
         QueryOptimizer::clearUserCache(auth()->id());
         
-        return redirect()->route('projects.show', $activity->project_id)
+        // ✅ SMART REDIRECT: Cek dari mana user berasal
+        $referrer = session('activity_referrer');
+        session()->forget('activity_referrer');
+        
+        // Jika dari detail project (URL mengandung /projects/)
+        if ($referrer && str_contains($referrer, '/projects/')) {
+            return redirect()->route('projects.show', $activity->project_id)
+                ->with('success', __('activities.activity_updated_success'));
+        }
+        
+        // Default: Kembali ke My Activities
+        return redirect()->route('activities.my-activities')
             ->with('success', __('activities.activity_updated_success'));
     }
 
@@ -409,10 +587,10 @@ class ActivityController extends Controller
      public function destroy(Activity $activity)
     {
         $user = auth()->user();
-        
-        // Supervisi TIDAK BISA delete
+    
+        // ✅ FASE 4: Kadiv TIDAK BISA delete aktivitas (bahkan aktivitas sendiri)
         if ($user->role === 'supervisi') {
-            abort(403, __('activities.supervisi_cannot_delete'));
+            abort(403, 'Sebagai Kadiv, Anda tidak dapat menghapus aktivitas. Kadiv hanya dapat membuat aktivitas baru di project yang Anda buat.');
         }
         
         // Hanya bisa delete aktivitas sendiri
@@ -439,7 +617,17 @@ class ActivityController extends Controller
 
         QueryOptimizer::clearUserCache(auth()->id());
         
-        return redirect()->route('projects.show', $projectId)
+        // ✅ SMART REDIRECT: Cek dari mana user berasal
+        $referrer = request()->headers->get('referer');
+        
+        // Jika dari detail project (URL mengandung /projects/)
+        if ($referrer && str_contains($referrer, '/projects/')) {
+            return redirect()->route('projects.show', $projectId)
+                ->with('success', __('activities.activity_deleted_success', ['name' => $namaAktivitas]));
+        }
+        
+        // Default: Kembali ke My Activities
+        return redirect()->route('activities.my-activities')
             ->with('success', __('activities.activity_deleted_success', ['name' => $namaAktivitas]));
     }
 
@@ -454,8 +642,8 @@ class ActivityController extends Controller
         // Base query
         $query = Activity::with(['project.pemilikProject', 'user']);
         
-        // Logic berdasarkan role dan switch view
-        if ($user->role === 'karyawan') {
+        // ✅ UPDATED: Logic berdasarkan role (+ kabag_pgb)
+        if ($user->role === 'kabag_pgb') {
             if ($viewBagian === 'PKJ') {
                 $query->whereHas('user', function ($q) {
                     $q->where('bagian', 'PKJ');
@@ -463,6 +651,16 @@ class ActivityController extends Controller
             } else {
                 $query->where('user_id', $user->id);
             }
+            
+        } elseif ($user->role === 'karyawan') {
+            if ($viewBagian === 'PKJ') {
+                $query->whereHas('user', function ($q) {
+                    $q->where('bagian', 'PKJ');
+                });
+            } else {
+                $query->where('user_id', $user->id);
+            }
+            
         } elseif ($user->role === 'perizinan') {
             if ($viewBagian === 'all_pkj') {
                 $query->whereHas('user', function ($q) {
@@ -533,9 +731,10 @@ class ActivityController extends Controller
     {
         $user = auth()->user();
         
-        // Base query berdasarkan role
-        if ($user->role === 'supervisi') {
+        // ✅ UPDATED: Base query berdasarkan role (+ kabag_pgb)
+        if ($user->role === 'supervisi' || $user->role === 'kabag_pgb') {
             $query = Activity::with(['project.pemilikProject', 'user']);
+            
         } elseif ($user->role === 'perizinan') {
             $viewBagian = $request->get('view_bagian', 'PKJ');
             
@@ -625,19 +824,49 @@ class ActivityController extends Controller
     {
         $user = auth()->user();
         
-        // Authorization check
-        if ($user->role === 'supervisi') {
-            $query = Activity::with(['project.pemilikProject', 'project.picProyek', 'user']);
-        } 
-        elseif ($user->role === 'perizinan') {
-            $query = Activity::with(['project.pemilikProject', 'project.picProyek', 'user'])
-                ->where('user_id', $user->id);
-        }
-        else {
+        // ✅ NEW: Authorization check
+        if (!$this->canExportActivities($user)) {
             abort(403, __('activities.unauthorized_export'));
         }
         
-        // ========== APPLY FILTERS (sama seperti sebelumnya) ==========
+        // ✅ NEW: Query berdasarkan role (SAMA seperti logic di index())
+        if ($user->role === 'supervisi') {
+            $query = Activity::with(['project.pemilikProject', 'project.pics', 'user']);
+        } 
+        elseif ($user->role === 'kabag_pgb') {
+            $query = Activity::with(['project.pemilikProject', 'project.pics', 'user'])
+                ->where(function($q) use ($user) {
+                    // 1. Karyawan PGB (exclude self)
+                    $q->whereHas('user', function($userQuery) use ($user) {
+                        $userQuery->where('role', 'karyawan')
+                                ->where('bagian', 'PGB')
+                                ->where('id', '!=', $user->id);
+                    })
+                    // 2. PKJ di project milik Kabag PGB
+                    ->orWhere(function($pkjQuery) use ($user) {
+                        $pkjQuery->whereHas('user', function($u) {
+                            $u->where('bagian', 'PKJ');
+                        })
+                        ->whereHas('project', function($p) use ($user) {
+                            $p->where('user_id', $user->id);
+                        });
+                    });
+                });
+        }
+        elseif ($user->role === 'perizinan' || ($user->role === 'karyawan' && $user->bagian === 'PKJ')) {
+            // ✅ NEW: PKJ (Kabag + Staff): Export SEMUA aktivitas PKJ
+            $query = Activity::with(['project.pemilikProject', 'project.pics', 'user'])
+                ->whereHas('user', function($q) {
+                    $q->where('bagian', 'PKJ');
+                });
+        }
+        else {
+            // ✅ NEW: Staff PGB: Export aktivitas sendiri saja
+            $query = Activity::with(['project.pemilikProject', 'project.pics', 'user'])
+                ->where('user_id', $user->id);
+        }
+        
+        // ========== APPLY FILTERS ==========
         
         if ($request->filled('search')) {
             $search = $request->search;
@@ -660,8 +889,7 @@ class ActivityController extends Controller
         }
         
         if ($request->filled('user_id')) {
-            // Jika PKJ, ignore filter user_id (hanya bisa lihat punya dia)
-            if ($user->role === 'supervisi') {
+            if ($user->role === 'supervisi' || $user->role === 'kabag_pgb') {
                 $query->where('user_id', $request->user_id);
             }
         }
@@ -697,9 +925,11 @@ class ActivityController extends Controller
         
         $filterInfo = $this->prepareFilterInfo($request);
         
-        // Tambahkan info role di filter
-        if ($user->role === 'perizinan') {
-            $filterInfo['Scope'] = 'Aktivitas Saya (' . $user->bagian . ')';
+        // ✅ FIXED: Scope untuk PKJ dan Kabag PGB
+        if ($user->role === 'perizinan' || ($user->role === 'karyawan' && $user->bagian === 'PKJ')) {
+            $filterInfo['Scope'] = 'Aktivitas Bagian PKJ';
+        } elseif ($user->role === 'kabag_pgb') {
+            $filterInfo['Scope'] = 'Aktivitas Bagian PGB'; // ✅ FIXED: Bukan "Kabag PGB"
         }
         
         $stats = [
@@ -723,19 +953,47 @@ class ActivityController extends Controller
         
         $user = auth()->user();
         
-        // Authorization check
-        if ($user->role === 'supervisi') {
-            $query = Activity::with(['project.pemilikProject', 'project.picProyek', 'user']);
-        } 
-        elseif ($user->role === 'perizinan') {
-            $query = Activity::with(['project.pemilikProject', 'project.picProyek', 'user'])
-                ->where('user_id', $user->id);
-        }
-        else {
-            abort(403, 'Unauthorized. Only Supervisi and PKJ can export activities.');
+        // ✅ NEW: Authorization check
+        if (!$this->canExportActivities($user)) {
+            abort(403, 'Unauthorized. Only authorized users can export activities.');
         }
         
-        // Apply filters (sama seperti sebelumnya)
+        // ✅ NEW: Query berdasarkan role (SAMA seperti exportPreview)
+        if ($user->role === 'supervisi') {
+            $query = Activity::with(['project.pemilikProject', 'project.pics', 'user']);
+        } 
+        elseif ($user->role === 'kabag_pgb') {
+            $query = Activity::with(['project.pemilikProject', 'project.pics', 'user'])
+                ->where(function($q) use ($user) {
+                    $q->whereHas('user', function($userQuery) use ($user) {
+                        $userQuery->where('role', 'karyawan')
+                                ->where('bagian', 'PGB')
+                                ->where('id', '!=', $user->id);
+                    })
+                    ->orWhere(function($pkjQuery) use ($user) {
+                        $pkjQuery->whereHas('user', function($u) {
+                            $u->where('bagian', 'PKJ');
+                        })
+                        ->whereHas('project', function($p) use ($user) {
+                            $p->where('user_id', $user->id);
+                        });
+                    });
+                });
+        }
+        elseif ($user->role === 'perizinan' || ($user->role === 'karyawan' && $user->bagian === 'PKJ')) {
+            // ✅ NEW: PKJ: Export SEMUA aktivitas PKJ
+            $query = Activity::with(['project.pemilikProject', 'project.pics', 'user'])
+                ->whereHas('user', function($q) {
+                    $q->where('bagian', 'PKJ');
+                });
+        }
+        else {
+            // ✅ NEW: Staff PGB: Export aktivitas sendiri
+            $query = Activity::with(['project.pemilikProject', 'project.pics', 'user'])
+                ->where('user_id', $user->id);
+        }
+        
+        // Apply filters (sama seperti exportPreview)
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
@@ -757,7 +1015,7 @@ class ActivityController extends Controller
         }
         
         if ($request->filled('user_id')) {
-            if ($user->role === 'supervisi') {
+            if ($user->role === 'supervisi' || $user->role === 'kabag_pgb') {
                 $query->where('user_id', $request->user_id);
             }
         }
@@ -793,14 +1051,17 @@ class ActivityController extends Controller
         
         $filterInfo = $this->prepareFilterInfo($request);
         
-        if ($user->role === 'perizinan') {
-            $filterInfo['Scope'] = 'Aktivitas Saya (' . $user->bagian . ')';
+        // ✅ FIXED: Scope untuk PKJ dan Kabag PGB
+        if ($user->role === 'perizinan' || ($user->role === 'karyawan' && $user->bagian === 'PKJ')) {
+            $filterInfo['Scope'] = 'Aktivitas Bagian PKJ';
+        } elseif ($user->role === 'kabag_pgb') {
+            $filterInfo['Scope'] = 'Aktivitas Bagian PGB'; // ✅ FIXED
         }
         
         $pdf = Pdf::loadView('pdf.activities', compact('activities', 'filterInfo'));
         $pdf->setPaper('a4', 'landscape');
         
-        $filename = 'activities_' . ($user->role === 'perizinan' ? $user->bagian . '_' : '') . now()->format('Y-m-d_His') . '.pdf';
+        $filename = 'activities_' . ($user->role === 'perizinan' || $user->bagian === 'PKJ' ? 'PKJ_' : ($user->role === 'kabag_pgb' ? 'PGB_' : '')) . now()->format('Y-m-d_His') . '.pdf';
         
         return $pdf->download($filename);
     }
@@ -813,13 +1074,14 @@ class ActivityController extends Controller
     {
         $user = auth()->user();
         
-        // Authorization check
-        if (!in_array($user->role, ['supervisi', 'perizinan'])) {
+        // ✅ NEW: Authorization check
+        if (!$this->canExportActivities($user)) {
             abort(403, __('activities.unauthorized_export'));
         }
         
-        // Base query - ALWAYS filter by current user
-        $query = Activity::with(['project.pemilikProject', 'project.picProyek', 'user'])
+        // ✅ FIXED: Base query - ALWAYS filter by current user
+        // Tidak peduli role apa, di halaman MY ACTIVITIES = aktivitas sendiri
+        $query = Activity::with(['project.pemilikProject', 'project.pics', 'user'])
             ->where('user_id', $user->id);
         
         // ========== APPLY FILTERS ==========
@@ -854,7 +1116,7 @@ class ActivityController extends Controller
         
         $activities = $query->orderBy('tanggal_mulai', 'desc')->get();
         
-        // Prepare filter info
+        // ✅ FIXED: Prepare filter info - selalu menampilkan scope My Activities
         $filterInfo = [
             'Scope' => 'Aktivitas Saya - ' . $user->name . ' (' . $user->bagian . ')'
         ];
@@ -894,7 +1156,6 @@ class ActivityController extends Controller
      * Export My Activities to PDF
      * Accessible by: Supervisi & PKJ (only their own activities)
      */
-   
     public function myActivitiesExportPdf(Request $request)
     {
         // 🔒 LOCK LOCALE KE BAHASA INDONESIA UNTUK PDF
@@ -902,16 +1163,16 @@ class ActivityController extends Controller
         
         $user = auth()->user();
         
-        // Authorization check
-        if (!in_array($user->role, ['supervisi', 'perizinan'])) {
-            abort(403, 'Unauthorized. Only Supervisi and PKJ can export activities.');
+        // ✅ NEW: Authorization check
+        if (!$this->canExportActivities($user)) {
+            abort(403, 'Unauthorized. Only authorized users can export activities.');
         }
         
-        // Base query - ALWAYS filter by current user
-        $query = Activity::with(['project.pemilikProject', 'project.picProyek', 'user'])
+        // ✅ FIXED: Base query - ALWAYS filter by current user
+        $query = Activity::with(['project.pemilikProject', 'project.pics', 'user'])
             ->where('user_id', $user->id);
         
-        // Apply filters (sama seperti sebelumnya)
+        // Apply filters (sama seperti myActivitiesExportPreview)
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
@@ -942,6 +1203,7 @@ class ActivityController extends Controller
         
         $activities = $query->orderBy('tanggal_mulai', 'desc')->get();
         
+        // ✅ FIXED: Filter info selalu menampilkan scope My Activities
         $filterInfo = [
             'Scope' => 'Aktivitas Saya - ' . $user->name . ' (' . $user->bagian . ')'
         ];
@@ -973,5 +1235,40 @@ class ActivityController extends Controller
         $filename = 'my_activities_' . $user->bagian . '_' . now()->format('Y-m-d_His') . '.pdf';
         
         return $pdf->download($filename);
+    }
+
+    /**
+     * Download attachment file with proper headers
+     */
+    public function downloadAttachment(Activity $activity)
+    {
+        $user = auth()->user();
+        
+        // Authorization: User harus punya akses ke activity
+        if ($user->role !== 'supervisi' && $user->role !== 'kabag_pgb' && $user->role !== 'perizinan') {
+            if ($user->id !== $activity->user_id && $user->bagian !== $activity->user->bagian) {
+                abort(403, 'Unauthorized access to download this attachment.');
+            }
+        }
+        
+        // Check if file exists
+        if (!$activity->lampiran) {
+            abort(404, 'No attachment found for this activity.');
+        }
+        
+        $filePath = storage_path('app/public/' . $activity->lampiran);
+        
+        if (!file_exists($filePath)) {
+            abort(404, 'Attachment file not found on server.');
+        }
+        
+        // Get original filename
+        $filename = basename($activity->lampiran);
+        
+        // Return file download with proper headers
+        return response()->download($filePath, $filename, [
+            'Content-Type' => mime_content_type($filePath),
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"'
+        ]);
     }
 }

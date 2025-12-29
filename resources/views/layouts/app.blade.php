@@ -257,7 +257,7 @@
                 font-weight: 600;
             }
 
-            /* ===== SELECT2 CUSTOM STYLING - GREEN THEME (UPDATED) ===== */
+            /* ===== SELECT2 SINGLE-SELECT STYLING ===== */
 
             /* Container */
             .select2-container--default .select2-selection--single {
@@ -279,20 +279,32 @@
                 height: 40px !important;
             }
 
+            /* Single-select placeholder - lebih pudar */
+            .select2-container--default .select2-selection--single .select2-selection__placeholder {
+                color: #9ca3af !important;
+                position: absolute !important;
+                left: 12px !important;
+                top: 10px !important;
+                pointer-events: none !important;
+                font-size: 1rem !important;
+                line-height: 1.5 !important;
+                z-index: 1 !important;
+            }
+
             /* Focus state - HIJAU */
             .select2-container--default.select2-container--focus .select2-selection--single {
                 border-color: var(--primary-green) !important;
                 box-shadow: 0 0 0 1px var(--primary-green) !important;
             }
 
-            /* ✅ HOVER STATE - HIJAU (INI YANG PENTING!) */
+            /* ✅ HOVER STATE - HIJAU */
             .select2-container--default .select2-results__option--highlighted[aria-selected],
             .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
                 background-color: var(--primary-green) !important;
                 color: white !important;
             }
 
-            /* Additional hover styling untuk lebih konsisten */
+            /* Additional hover styling */
             .select2-results__option--selectable:hover {
                 background-color: var(--primary-green) !important;
                 color: white !important;
@@ -320,7 +332,7 @@
                 box-shadow: 0 0 0 1px var(--primary-green) !important;
             }
 
-            /* Selected option (yang sudah dipilih) - HIJAU MUDA */
+            /* Selected option - HIJAU MUDA */
             .select2-container--default .select2-results__option[aria-selected=true] {
                 background-color: var(--primary-green-lighter) !important;
                 color: var(--primary-green-dark) !important;
@@ -334,24 +346,236 @@
                 cursor: not-allowed !important;
             }
 
-            /* Hover effects untuk rows */
-            .hover-green:hover {
-                background-color: var(--primary-green-lighter) !important;
+            /* ===== SELECT2 MULTI-SELECT - ULTRA CLEAN & PROFESSIONAL ===== */
+
+            /* ✅ Container */
+            .select2-container--default .select2-selection--multiple {
+                min-height: 42px !important;
+                max-height: 120px !important;
+                border: 1px solid var(--gray-300) !important;
+                border-radius: 0.5rem !important;
+                padding: 6px 12px !important;
+                background-color: white !important;
+                transition: all 0.2s ease !important;
+                box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+                overflow-y: auto !important;
             }
 
-            .hover-blue:hover {
-                background-color: var(--project-blue-lighter) !important;
+            /* Force placeholder untuk multi-select Select2 */
+            .placeholder-text {
+                color: #9ca3af !important;
+                position: absolute !important;
+                left: 12px !important;
+                top: 8px !important;
+                pointer-events: none !important;
+                font-size: 1rem !important;
+                line-height: 1.5 !important;
+                z-index: 1 !important;
             }
 
-            .hover-purple:hover {
-                background-color: var(--pkj-purple-lighter) !important;
+            .select2-container--default .select2-selection--multiple::-webkit-scrollbar {
+                width: 6px !important;
             }
-            
-            /* Select2 Custom Styling - Match dengan Green Theme */
+
+            .select2-container--default .select2-selection--multiple::-webkit-scrollbar-track {
+                background: var(--gray-100) !important;
+                border-radius: 3px !important;
+            }
+
+            .select2-container--default .select2-selection--multiple::-webkit-scrollbar-thumb {
+                background: var(--primary-green) !important;
+                border-radius: 3px !important;
+            }
+
+            /* ✅ Rendered Items Container */
+            .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+                padding: 0 !important;
+                margin: 0 !important;
+                display: flex !important;
+                flex-wrap: wrap !important;
+                gap: 6px !important;
+            }
+
+            /* ✅ SELECTED CHIPS - Clean & Simple (NO ICONS) */
+            .select2-container--default .select2-selection--multiple .select2-selection__choice {
+                border-radius: 0.5rem !important;
+                padding: 6px 12px 6px 24px !important;
+                margin: 0 !important;
+                font-size: 0.875rem !important;
+                font-weight: 600 !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                position: relative !important;
+                white-space: nowrap !important;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+                transition: all 0.2s ease !important;
+                border: none !important;
+            }
+
+            /* ✅ PGB Badge - Hijau */
+            .select2-container--default .select2-selection--multiple .select2-selection__choice[data-bagian="PGB"] {
+                background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-green-hover) 100%) !important;
+                color: white !important;
+            }
+
+            /* ✅ PKJ Badge - Ungu */
+            .select2-container--default .select2-selection--multiple .select2-selection__choice[data-bagian="PKJ"] {
+                background: linear-gradient(135deg, var(--pkj-purple) 0%, var(--pkj-purple-hover) 100%) !important;
+                color: white !important;
+            }
+
+            /* ✅ SUPERVISI Badge - Merah */
+            .select2-container--default .select2-selection--multiple .select2-selection__choice[data-bagian="SUPERVISI"] {
+                background: linear-gradient(135deg, var(--delete-red) 0%, var(--delete-red-hover) 100%) !important;
+                color: white !important;
+            }
+
+            /* ✅ Hover Effect */
+            .select2-container--default .select2-selection--multiple .select2-selection__choice:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15) !important;
+            }
+
+            /* ✅ Remove Button (X) */
+            .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+                position: absolute !important;
+                right: 4px !important;
+                top: 50% !important;
+                transform: translateY(-50%) !important;
+                width: 24px !important;
+                height: 24px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                color: white !important;
+                background-color: rgba(0, 0, 0, 0.15) !important;
+                border: none !important;
+                border-radius: 50% !important;
+                font-size: 1rem !important;
+                font-weight: bold !important;
+                cursor: pointer !important;
+                opacity: 0.8 !important;
+                transition: all 0.15s ease !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+                opacity: 1 !important;
+                background-color: rgba(0, 0, 0, 0.3) !important;
+                transform: translateY(-50%) scale(1.1) !important;
+            }
+
+            /* ✅ HIDE INTERNAL SEARCH */
+            .select2-container--default .select2-search--inline {
+                display: none !important;
+            }
+
+            /* ✅ HOVER - Green Border */
+            .select2-container--default .select2-selection--multiple:hover {
+                border-color: var(--primary-green) !important;
+            }
+
+            /* ✅ FOCUS - Green Ring */
+            .select2-container--default.select2-container--focus .select2-selection--multiple {
+                border-color: var(--primary-green) !important;
+                box-shadow: 0 0 0 1px var(--primary-green), 0 0 0 3px var(--primary-green-lighter) !important;
+                outline: none !important;
+            }
+
+            /* ✅ DROPDOWN */
+            .select2-dropdown {
+                border: 2px solid var(--primary-green) !important;
+                border-radius: 0.5rem !important;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+                z-index: 9999 !important;
+            }
+
+            .select2-results {
+                max-height: 400px !important; /* ✅ TAMBAH INI - default 200px */
+            }
+
+            .select2-results__options {
+                max-height: 400px !important; /* ✅ TAMBAH INI - default 200px */
+            }
+
+            /* ✅ OptGroup Labels */
+            .select2-container--default .select2-results__group {
+                font-weight: 700 !important;
+                font-size: 0.75rem !important;
+                text-transform: uppercase !important;
+                letter-spacing: 1px !important;
+                padding: 10px 14px !important;
+                background: linear-gradient(to right, var(--gray-100), var(--gray-200)) !important;
+                color: var(--gray-700) !important;
+                border-top: 2px solid var(--gray-300) !important;
+                border-bottom: 1px solid var(--gray-200) !important;
+            }
+
+            /* ✅ Dropdown Options */
+            .select2-container--default .select2-results__option {
+                padding: 12px 16px !important;
+                font-size: 0.925rem !important;
+                transition: all 0.15s ease !important;
+            }
+
+            /* ✅ Highlighted Option */
+            .select2-container--default .select2-results__option--highlighted[aria-selected],
+            .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+                background-color: var(--primary-green) !important;
+                color: white !important;
+            }
+
+            /* ✅ Selected Option */
             .select2-container--default .select2-results__option[aria-selected=true] {
                 background-color: var(--primary-green-lighter) !important;
-                color: var(--primary-green) !important;
+                color: var(--primary-green-dark) !important;
+                font-weight: 600 !important;
             }
+
+            /* ✅ Search Box */
+            .select2-search--dropdown .select2-search__field {
+                border: 1px solid var(--gray-300) !important;
+                border-radius: 0.375rem !important;
+                padding: 8px 12px !important;
+            }
+
+            .select2-search--dropdown .select2-search__field:focus {
+                border-color: var(--primary-green) !important;
+                outline: none !important;
+                box-shadow: 0 0 0 1px var(--primary-green) !important;
+            }
+
+            /* ✅ Animation */
+            @keyframes fadeInChip {
+                from {
+                    opacity: 0;
+                    transform: scale(0.9);
+                }
+                to {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+            }
+
+            .select2-selection__choice {
+                animation: fadeInChip 0.2s ease-out !important;
+            }
+
+            /* ✅ Responsive */
+            @media (max-width: 640px) {
+                .select2-container--default .select2-selection--multiple {
+                    min-height: 38px !important;
+                    padding: 4px 8px !important;
+                }
+                
+                .select2-container--default .select2-selection--multiple .select2-selection__choice {
+                    padding: 4px 28px 4px 8px !important;
+                    font-size: 0.75rem !important;
+                }
+            }
+
+            /* PIC (diatas) */
 
             /* Hover effects untuk rows */
             .hover-green:hover {
@@ -378,7 +602,7 @@
                 background-color: white !important;
             }
 
-            /* Pagination text (Showing X to Y of Z results) */
+            /* Pagination text */
             nav[role="navigation"] p {
                 color: var(--gray-600) !important;
             }
@@ -398,14 +622,14 @@
                 border-color: var(--gray-400) !important;
             }
 
-            /* Active/current page - MATCH WITH GREEN THEME */
+            /* Active/current page */
             nav[role="navigation"] span[aria-current="page"] {
                 background-color: var(--primary-green) !important;
                 color: white !important;
                 border-color: var(--primary-green) !important;
             }
 
-            /* Disabled state (previous/next di ujung) */
+            /* Disabled state */
             nav[role="navigation"] span[aria-disabled="true"] {
                 background-color: var(--gray-50) !important;
                 color: var(--gray-400) !important;
@@ -414,7 +638,7 @@
                 opacity: 0.6;
             }
 
-            /* Previous/Next buttons - MATCH WITH GREEN THEME */
+            /* Previous/Next buttons */
             nav[role="navigation"] a[rel="prev"],
             nav[role="navigation"] a[rel="next"] {
                 background-color: white !important;
@@ -429,7 +653,7 @@
                 border-color: var(--primary-green) !important;
             }
 
-            /* SVG icons di prev/next buttons */
+            /* SVG icons */
             nav[role="navigation"] svg {
                 color: currentColor !important;
             }
@@ -441,7 +665,7 @@
                 border-color: var(--gray-300) !important;
             }
 
-            /* Mobile pagination (sm:hidden) */
+            /* Mobile pagination */
             nav[role="navigation"] .sm\\:hidden a,
             nav[role="navigation"] .sm\\:hidden span {
                 background-color: white !important;
@@ -461,9 +685,8 @@
                 border-color: var(--gray-200) !important;
             }
 
-            /* ===== NATIVE SELECT DROPDOWN HOVER STYLING - HIJAU ===== */
+            /* ===== NATIVE SELECT DROPDOWN STYLING ===== */
 
-            /* Base styling untuk select dropdown */
             select {
                 appearance: none;
                 background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
@@ -473,20 +696,17 @@
                 padding-right: 2.5rem;
             }
 
-            /* Hover effect untuk select element */
             select:hover {
                 border-color: var(--primary-green) !important;
                 box-shadow: 0 0 0 1px var(--primary-green) !important;
             }
 
-            /* Focus state untuk select */
             select:focus {
                 border-color: var(--primary-green) !important;
                 box-shadow: 0 0 0 1px var(--primary-green), 0 0 0 3px var(--primary-green-lighter) !important;
                 outline: none !important;
             }
 
-            /* Styling untuk option elements (dropdown items) */
             select option {
                 background-color: white;
                 color: var(--gray-700);
@@ -494,27 +714,23 @@
                 font-size: 0.875rem;
             }
 
-            /* ✅ HOVER EFFECT UNTUK OPTIONS - HIJAU */
             select option:hover {
                 background-color: var(--primary-green) !important;
                 color: white !important;
                 cursor: pointer;
             }
 
-            /* Active/Selected option - Hijau muda */
             select option:checked {
                 background-color: var(--primary-green-lighter) !important;
                 color: var(--primary-green-dark) !important;
                 font-weight: 600;
             }
 
-            /* When option is being clicked/selected */
             select option:active {
                 background-color: var(--primary-green-hover) !important;
                 color: white !important;
             }
 
-            /* Firefox specific - karena Firefox punya rendering berbeda */
             @-moz-document url-prefix() {
                 select option:hover {
                     background-color: var(--primary-green) !important;
@@ -527,7 +743,6 @@
                 }
             }
 
-            /* Disabled option styling */
             select option:disabled {
                 background-color: var(--gray-100) !important;
                 color: var(--gray-400) !important;
@@ -535,15 +750,11 @@
                 opacity: 0.6;
             }
 
-            /* Placeholder option (yang disabled selected hidden) */
             select option[disabled][selected][hidden] {
-                color: var(--gray-400);
-                display: none;
+                color: #9ca3af !important;
+                opacity: 0.7 !important;
             }
 
-            /* ===== ENHANCED DROPDOWN VISUAL FEEDBACK ===== */
-
-            /* Animasi smooth untuk dropdown */
             select {
                 transition: all 0.2s ease;
             }
@@ -556,8 +767,6 @@
                 transform: translateY(0);
             }
 
-            /* ===== WEBKIT/CHROME SPECIFIC STYLING ===== */
-            /* Scrollbar styling untuk dropdown panjang */
             select::-webkit-scrollbar {
                 width: 8px;
             }
@@ -576,7 +785,6 @@
                 background: var(--primary-green-hover);
             }
 
-            /* ===== DATALIST STYLING (untuk input dengan suggestions) ===== */
             datalist {
                 background-color: white;
                 border: 1px solid var(--gray-300);
@@ -588,7 +796,7 @@
                 color: white !important;
             }
 
-            /* Text Input, Textarea, Date Input - Focus Green */
+            /* Text Input Focus */
             input[type="text"]:focus,
             input[type="email"]:focus,
             input[type="password"]:focus,
@@ -605,7 +813,6 @@
                 box-shadow: 0 0 0 1px var(--primary-green), 0 0 0 3px var(--primary-green-lighter) !important;
             }
 
-            /* Hover effect untuk input fields */
             input[type="text"]:hover,
             input[type="email"]:hover,
             input[type="password"]:hover,
@@ -619,28 +826,21 @@
                 border-color: var(--primary-green) !important;
             }
 
-            /* ===== DATE INPUT STYLING - HIJAU ===== */
-
-            /* Calendar icon color */
+            /* Date Input Styling */
             input[type="date"]::-webkit-calendar-picker-indicator {
                 cursor: pointer;
                 filter: invert(29%) sepia(95%) saturate(726%) hue-rotate(112deg) brightness(94%) contrast(94%);
-                /* Filter ini mengubah icon jadi hijau sesuai var(--primary-green) */
             }
 
             input[type="date"]::-webkit-calendar-picker-indicator:hover {
                 filter: invert(14%) sepia(68%) saturate(1682%) hue-rotate(113deg) brightness(95%) contrast(98%);
-                /* Lebih gelap saat hover */
             }
 
-            /* Date input focus - hijau */
             input[type="date"]:focus::-webkit-calendar-picker-indicator {
-                filter: invert(29%) sepi(95%) saturate(726%) hue-rotate(112deg) brightness(94%) contrast(94%);
+                filter: invert(29%) sepia(95%) saturate(726%) hue-rotate(112deg) brightness(94%) contrast(94%);
             }
 
-            /* ===== TAILWIND OVERRIDE - GREEN FOCUS ===== */
-
-            /* Override Tailwind default focus (biru) ke hijau */
+            /* Tailwind Override */
             .focus\:border-blue-500:focus {
                 border-color: var(--primary-green) !important;
             }
@@ -649,7 +849,6 @@
                 --tw-ring-color: var(--primary-green) !important;
             }
 
-            /* Override untuk semua class yang ada focus:border-blue */
             [class*="focus:border-blue"]:focus {
                 border-color: var(--primary-green) !important;
             }
@@ -658,9 +857,6 @@
                 --tw-ring-color: var(--primary-green) !important;
             }
 
-            /* ===== SIFAT PROJECT OTHERS INPUT - HIJAU ===== */
-
-            /* Input manual untuk "Others" - styling hijau */
             #sifat_project_others {
                 transition: all 0.2s ease;
             }
@@ -675,12 +871,10 @@
                 border-color: var(--primary-green) !important;
             }
 
-            /* ===== SMOOTH TRANSITIONS ===== */
             input, textarea, select {
                 transition: border-color 0.2s ease, box-shadow 0.2s ease;
             }
 
-            /* ===== PLACEHOLDER STYLING ===== */
             input::placeholder,
             textarea::placeholder {
                 color: var(--gray-400);
@@ -690,6 +884,19 @@
             input:focus::placeholder,
             textarea:focus::placeholder {
                 color: var(--gray-500);
+            }
+
+            /* Pulse animation for countdown */
+            @keyframes pulse {
+                0%, 100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.5;
+                }
+            }
+            .animate-pulse {
+                animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
             }
         </style>
     </head>
@@ -865,60 +1072,51 @@
         {{-- Alpine.js CDN --}}
         <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-        {{-- Stack untuk custom scripts dari blade lain --}}
+        {{-- Stack untuk custom scripts --}}
         @stack('scripts')
 
-        <!-- Session Timeout Warning (FIXED - Working Countdown) -->
+        <!-- Session Timeout Warning -->
         <script>
-            // Konfigurasi timeout (dalam milidetik)
-            const SESSION_LIFETIME = {{ config('session.lifetime') * 60 * 1000 }}; // Convert ke ms
-            const WARNING_TIME = 5 * 60 * 1000; // Peringatan 5 menit sebelum timeout
-            const KEEP_ALIVE_INTERVAL = 5 * 60 * 1000; // Ping setiap 5 menit
+            const SESSION_LIFETIME = {{ config('session.lifetime') * 60 * 1000 }};
+            const WARNING_TIME = 5 * 60 * 1000;
+            const KEEP_ALIVE_INTERVAL = 5 * 60 * 1000;
 
             let lastActivityTime = Date.now();
             let warningShown = false;
             let keepAliveInterval;
             let timeoutCheckInterval;
-            let countdownInterval; // ✅ TAMBAHAN: Interval untuk countdown
+            let countdownInterval;
 
-            // Update last activity pada user interaction
             function updateActivity() {
                 lastActivityTime = Date.now();
                 warningShown = false;
                 
-                // Hide warning modal jika ada
                 const warningModal = document.getElementById('sessionWarningModal');
                 if (warningModal) {
                     warningModal.classList.add('hidden');
                 }
 
-                // ✅ STOP countdown interval jika ada
                 if (countdownInterval) {
                     clearInterval(countdownInterval);
                     countdownInterval = null;
                 }
             }
 
-            // Check timeout status
             function checkSessionTimeout() {
                 const elapsedTime = Date.now() - lastActivityTime;
                 const timeRemaining = SESSION_LIFETIME - elapsedTime;
 
-                // Jika waktu tersisa < WARNING_TIME, tampilkan warning
                 if (timeRemaining <= WARNING_TIME && !warningShown) {
                     showTimeoutWarning();
                     warningShown = true;
                 }
 
-                // Jika sudah timeout
                 if (timeRemaining <= 0) {
                     handleSessionTimeout();
                 }
             }
 
-            // ✅ FIXED: Tampilkan warning modal dengan countdown yang jalan
             function showTimeoutWarning() {
-                // Create modal jika belum ada
                 if (!document.getElementById('sessionWarningModal')) {
                     const modal = document.createElement('div');
                     modal.id = 'sessionWarningModal';
@@ -954,7 +1152,6 @@
                     `;
                     document.body.appendChild(modal);
 
-                    // Event listener untuk tombol continue
                     document.getElementById('continueSessionBtn').addEventListener('click', function() {
                         console.log('✅ User clicked continue session');
                         updateActivity();
@@ -962,11 +1159,9 @@
                     });
                 }
 
-                // Show modal
                 const modal = document.getElementById('sessionWarningModal');
                 modal.classList.remove('hidden');
 
-                // ✅ START countdown interval (update setiap detik)
                 if (countdownInterval) {
                     clearInterval(countdownInterval);
                 }
@@ -976,7 +1171,6 @@
                     const timeRemaining = SESSION_LIFETIME - elapsedTime;
                     const secondsLeft = Math.max(0, Math.floor(timeRemaining / 1000));
 
-                    // Update countdown text
                     const minutes = Math.floor(secondsLeft / 60);
                     const seconds = secondsLeft % 60;
                     const timeText = `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -985,7 +1179,6 @@
                     if (timeElement) {
                         timeElement.textContent = timeText;
                         
-                        // ✅ Ubah warna jadi lebih merah kalau < 1 menit
                         if (secondsLeft < 60) {
                             timeElement.classList.add('animate-pulse');
                         } else {
@@ -993,32 +1186,27 @@
                         }
                     }
 
-                    // ✅ Auto logout kalau sudah 0
                     if (secondsLeft <= 0) {
                         clearInterval(countdownInterval);
                         handleSessionTimeout();
                     }
-                }, 1000); // Update setiap 1 detik
+                }, 1000);
             }
 
-            // ✅ FIXED: Handle timeout dengan AJAX logout + Triple Fallback
             async function handleSessionTimeout() {
                 console.log('⏱️ Session timeout - forcing logout via API...');
                 
-                // Stop all intervals
                 clearInterval(keepAliveInterval);
                 clearInterval(timeoutCheckInterval);
                 if (countdownInterval) {
                     clearInterval(countdownInterval);
                 }
 
-                // Hide modal
                 const modal = document.getElementById('sessionWarningModal');
                 if (modal) {
                     modal.remove();
                 }
 
-                // Show loading overlay (user feedback)
                 const loadingOverlay = document.createElement('div');
                 loadingOverlay.id = 'loadingOverlay';
                 loadingOverlay.className = 'fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50';
@@ -1031,7 +1219,6 @@
                 document.body.appendChild(loadingOverlay);
 
                 try {
-                    // ✅ METHOD 1: Call force-logout API (Best)
                     const response = await fetch('{{ route('session.force-logout') }}', {
                         method: 'POST',
                         headers: {
@@ -1047,7 +1234,6 @@
                         if (data.status === 'logged_out') {
                             console.log('✅ Logout successful via API, redirecting...');
                             
-                            // Redirect dengan delay singkat
                             setTimeout(() => {
                                 window.location.replace('/');
                             }, 500);
@@ -1055,13 +1241,11 @@
                         }
                     }
                     
-                    // Jika response tidak OK, fallback ke method 2
                     throw new Error('API logout failed, using fallback');
                     
                 } catch (error) {
                     console.warn('⚠️ API logout failed, using form POST fallback:', error);
                     
-                    // ✅ METHOD 2: Fallback - Form POST (jika AJAX gagal)
                     try {
                         const logoutForm = document.createElement('form');
                         logoutForm.method = 'POST';
@@ -1075,14 +1259,12 @@
                         logoutForm.appendChild(csrfToken);
                         document.body.appendChild(logoutForm);
                         
-                        // Submit form
                         console.log('⚠️ Submitting logout form...');
                         logoutForm.submit();
                         
                     } catch (formError) {
                         console.error('❌ Form submission failed:', formError);
                         
-                        // ✅ METHOD 3: Ultimate fallback - direct redirect
                         console.warn('⚠️ Using direct redirect as last resort...');
                         setTimeout(() => {
                             window.location.href = '{{ route('login') }}?timeout=1';
@@ -1091,7 +1273,6 @@
                 }
             }
 
-            // Send keep-alive request ke server
             function sendKeepAlive() {
                 console.log('📡 Sending keep-alive ping...');
                 
@@ -1115,39 +1296,20 @@
                 });
             }
 
-            // Event listeners untuk user activity
             const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
             activityEvents.forEach(event => {
                 document.addEventListener(event, updateActivity, true);
             });
 
-            // Start intervals
             keepAliveInterval = setInterval(sendKeepAlive, KEEP_ALIVE_INTERVAL);
-            timeoutCheckInterval = setInterval(checkSessionTimeout, 10000); // Check setiap 10 detik
+            timeoutCheckInterval = setInterval(checkSessionTimeout, 10000);
 
-            // Initial activity update
             updateActivity();
 
-            // ✅ Debug info (bisa dihapus nanti kalau sudah production)
             console.log('🕐 Session Timeout Initialized:');
             console.log(`- Lifetime: ${SESSION_LIFETIME / 1000 / 60} minutes`);
             console.log(`- Warning: ${WARNING_TIME / 1000 / 60} minutes before timeout`);
             console.log(`- Keep-alive: every ${KEEP_ALIVE_INTERVAL / 1000 / 60} minutes`);
         </script>
-
-        <!-- ✅ CSS untuk animasi pulse (kalau belum ada) -->
-        <style>
-            @keyframes pulse {
-                0%, 100% {
-                    opacity: 1;
-                }
-                50% {
-                    opacity: 0.5;
-                }
-            }
-            .animate-pulse {
-                animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-            }
-        </style>
     </body>
 </html>

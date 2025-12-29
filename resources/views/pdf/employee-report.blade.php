@@ -341,7 +341,7 @@
         <div class="section-title">
             {{ __('employees.projects_worked_on') }}
         </div>
-        @if($employee->projects->count() > 0)
+        @if(isset($projects) && $projects->count() > 0)
             <table>
                 <thead>
                     <tr>
@@ -355,7 +355,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($employee->projects as $index => $project)
+                    @foreach($projects as $index => $project)
                         <tr>
                             <td>{{ $index + 1 }}</td>
                             <td><strong>{{ $project->nama_project }}</strong></td>

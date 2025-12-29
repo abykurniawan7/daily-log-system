@@ -30,6 +30,10 @@ return [
     'hide_filter' => 'Hide Filter',
     'export_pdf' => 'Export PDF',
     'preview_export' => 'Preview Export PDF',
+
+    'me' => 'Me',
+    'people' => 'people',
+    // 'kabag' => 'Head',
     
     // ... (translate semua dari id/common.php)
 ];

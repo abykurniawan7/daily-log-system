@@ -177,4 +177,32 @@ return [
     'document_generated' => 'Document generated on',
     'system_name' => 'Project Management System',
     'person_in_charge' => 'Person in Charge',
+
+    // PIC Selection
+    'select_pic_placeholder' => 'Select PIC (multiple selection allowed)',
+    'selected' => 'selected',
+    'no_available_users' => 'No users available for this section',
+    'no_results_found' => 'No results found',
+    'searching' => 'Searching...',
+
+    // ✅ NEW: Pengawas Project
+    'pengawas_project' => 'Project Supervisor',
+    'supervisor_project' => 'Supervisor',
+    'overseer' => 'Overseer',
+    
+    // Existing translations
+    'pic_project' => 'Project PIC',
+    'project_owner' => 'Project Owner',
+    'person_in_charge' => 'Person In Charge',
+    'created_by_kadiv_info' => 'This project was created by Kadiv, so there is no separate Supervisor',
+
+    'select_pic_placeholder' => 'Select Project PIC (can choose more than 1)',
+    'search_pic' => 'Search PIC...',
+    'no_results' => 'No results found',
+    'searching' => 'Searching',
+
+    // PIC Selection Hints
+    'pic_hint_kabag_pgb' => '💡 Head of PGB can select from <span class="font-semibold text-green-700">PGB</span> and <span class="font-semibold text-purple-700">PKJ</span> (excluding Kadiv)',
+    'pic_hint_perizinan' => '💡 PKJ can select all users except Supervisi/Kadiv',
+    'pic_hint_supervisi' => '🔰 Super Admin can select from all departments (PGB & PKJ)',
 ];

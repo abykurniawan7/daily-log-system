@@ -94,7 +94,7 @@ return [
     'select_pic' => 'Pilih PIC',
     'select_status' => 'Pilih Status',
     'select_urgency' => 'Pilih Urgensi',
-    'enter_project_name' => 'Masukkan nama proyek',
+    'enter_project_name' => 'Masukkan Nama Proyek',
     'enter_description' => 'Masukkan deskripsi proyek (opsional)',
     'required_field' => 'wajib diisi',
     
@@ -177,4 +177,35 @@ return [
     'document_generated' => 'Dokumen dibuat pada',
     'system_name' => 'Sistem Manajemen Project',
     'person_in_charge' => 'Penanggung Jawab',
+
+    // PIC Selection
+    'select_pic_placeholder' => 'Pilih PIC (bisa lebih dari 1)',
+    'selected' => 'dipilih',
+    'no_available_users' => 'Tidak ada user yang tersedia untuk bagian ini',
+    'no_results_found' => 'Tidak ada hasil ditemukan',
+    'searching' => 'Mencari...',
+
+    // ✅ NEW: Pengawas Project
+    'pengawas_project' => 'Pengawas Project',
+    'supervisor_project' => 'Supervisor', // alternative
+    'overseer' => 'Pengawas', // alternative
+    
+    // Existing translations
+    'pic_project' => 'PIC Project',
+    'project_owner' => 'Pemilik Project',
+    'person_in_charge' => 'Penanggung Jawab',
+    'created_by_kadiv_info' => 'Project ini dibuat oleh Kadiv, sehingga tidak ada Pengawas terpisah',
+
+    'pic_filter_kabag' => '💡 Kabag PGB hanya dapat memilih user dari bagian PGB (tidak termasuk Kadiv dan Kabag)',
+    'pic_filter_pkj' => '💡 PKJ dapat memilih semua user kecuali Supervisi/Kadiv',
+
+    'select_pic_placeholder' => 'Pilih PIC Proyek (bisa lebih dari 1 orang)',
+    'search_pic' => 'Cari PIC...',
+    'no_results' => 'Tidak ada hasil ditemukan',
+    'searching' => 'Mencari',
+
+    // PIC Selection Hints
+    'pic_hint_kabag_pgb' => '💡 Kabag PGB dapat memilih dari <span class="font-semibold text-green-700">PGB</span> dan <span class="font-semibold text-purple-700">PKJ</span> (tidak termasuk Kadiv)',
+    'pic_hint_perizinan' => '💡 PKJ dapat memilih semua user kecuali Supervisi/Kadiv',
+    'pic_hint_supervisi' => '🔰 Super Admin dapat memilih dari semua bagian (PGB & PKJ)',
 ];

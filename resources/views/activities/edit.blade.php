@@ -76,10 +76,18 @@
                                         required
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('jenis_kegiatan') border-red-500 @enderror">
                                     <option value="" disabled {{ !$currentJenis ? 'selected' : '' }} hidden>{{ __('activities.select_activity_type') }}</option>
-                                    <option value="Meeting" {{ $currentJenis == 'Meeting' ? 'selected' : '' }}>Meeting</option>
-                                    <option value="Coding" {{ $currentJenis == 'Coding' ? 'selected' : '' }}>Coding</option>
-                                    <option value="Dokumentasi" {{ $currentJenis == 'Dokumentasi' ? 'selected' : '' }}>Dokumentasi</option>
-                                    <option value="Support" {{ $currentJenis == 'Support' ? 'selected' : '' }}>Support</option>
+                                    <option value="Meeting" {{ $currentJenis == 'Meeting' ? 'selected' : '' }}>
+                                        {{ __('activities.activity_type_meeting') }}
+                                    </option>
+                                    <option value="Coding" {{ $currentJenis == 'Coding' ? 'selected' : '' }}>
+                                        {{ __('activities.activity_type_coding') }}
+                                    </option>
+                                    <option value="Dokumentasi" {{ $currentJenis == 'Dokumentasi' ? 'selected' : '' }}>
+                                        {{ __('activities.activity_type_documentation') }}
+                                    </option>
+                                    <option value="Support" {{ $currentJenis == 'Support' ? 'selected' : '' }}>
+                                        {{ __('activities.activity_type_support') }}
+                                    </option>
                                     <option value="Lainnya" {{ $isCustom ? 'selected' : '' }}>
                                         {{ __('activities.others') }}
                                     </option>

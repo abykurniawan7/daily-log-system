@@ -12,11 +12,6 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'uuid',
         'name',
@@ -26,21 +21,11 @@ class User extends Authenticatable
         'bagian',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -49,7 +34,6 @@ class User extends Authenticatable
         ];
     }
 
-    // ✅ AUTO-GENERATE UUID
     protected static function boot()
     {
         parent::boot();
@@ -72,10 +56,8 @@ class User extends Authenticatable
             return $this->where($field, $value)->firstOrFail();
         }
         
-        // Try UUID first
         $result = $this->where('uuid', $value)->first();
         
-        // Fallback to ID (backward compatibility)
         if (!$result && is_numeric($value)) {
             $result = $this->where('id', $value)->first();
         }
@@ -87,106 +69,170 @@ class User extends Authenticatable
         return $result;
     }
 
-    /**
-     * Get all activities for this user
-     */
+    // ============================================
+    // RELATIONSHIPS
+    // ============================================
+
     public function activities()
     {
         return $this->hasMany(Activity::class);
     }
 
-    /**
-     * Get all projects where this user is PIC (Person In Charge)
-     */
     public function projects()
     {
         return $this->hasMany(Project::class, 'pic_proyek_id');
     }
 
-    /**
-     * Get all projects created by this user (for admin use)
-     */
     public function createdProjects()
     {
         return $this->hasMany(Project::class, 'user_id');
     }
 
-    /**
-     * Check if user is Admin
-     */
-    public function isAdmin()
-    {
-        return $this->role === 'admin';
-    }
-
-    /**
-     * Check if user is Supervisi
-     */
-    public function isSupervisi()
-    {
-        return $this->role === 'supervisi';
-    }
-
-    /**
-     * Check if user is Karyawan
-     */
-    public function isKaryawan()
-    {
-        return $this->role === 'karyawan';
-    }
-
-    /**
-     * Check if user is Perizinan
-     */
-    public function isPerizinan()
-    {
-        return $this->role === 'perizinan';
-    }
-
-    /**
-     * Check if user is Guest
-     */
-    public function isGuest()
-    {
-        return $this->role === 'guest';
-    }
-
-    /**
-     * Get projects where user is PIC
-     */
     public function projectsAsPic()
     {
         return $this->hasMany(Project::class, 'pic_proyek_id');
     }
 
-    /**
-     * Relationship ke role requests yang diajukan user
-     */
     public function roleRequests()
     {
         return $this->hasMany(RoleRequest::class);
     }
+
+    public function assignedProjects()
+    {
+        return $this->belongsToMany(Project::class, 'project_user')
+                    ->withPivot('role_type')
+                    ->withTimestamps();
+    }
+
+    // ============================================
+    // ROLE CHECK HELPERS (Existing)
+    // ============================================
+
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isSupervisi()
+    {
+        return $this->role === 'supervisi';
+    }
+
+    public function isKaryawan()
+    {
+        return $this->role === 'karyawan';
+    }
+
+    public function isPerizinan()
+    {
+        return $this->role === 'perizinan';
+    }
+
+    public function isGuest()
+    {
+        return $this->role === 'guest';
+    }
+
+    public function isKabagPGB()
+    {
+        return $this->role === 'kabag_pgb';
+    }
+
+    // ============================================
+    // ✅ NEW: PKJ HELPER FUNCTIONS
+    // ============================================
+
     /**
-     * Get pending role request user (jika ada)
+     * Check if user is PKJ (Kabag PKJ or Staff PKJ)
+     * Staff PKJ punya fungsi sama dengan Kabag PKJ
+     * 
+     * @return bool
      */
+    public function isPKJ(): bool
+    {
+        return $this->role === 'perizinan' || 
+               ($this->role === 'karyawan' && $this->bagian === 'PKJ');
+    }
+
+    /**
+     * Check if user is Kabag PKJ (role perizinan)
+     * 
+     * @return bool
+     */
+    public function isKabagPKJ(): bool
+    {
+        return $this->role === 'perizinan';
+    }
+
+    /**
+     * Check if user is Staff PKJ (karyawan with bagian PKJ)
+     * 
+     * @return bool
+     */
+    public function isStaffPKJ(): bool
+    {
+        return $this->role === 'karyawan' && $this->bagian === 'PKJ';
+    }
+
+    /**
+     * Check if user can create projects
+     * Supervisi, Kabag PGB, Kabag PKJ, dan Staff PKJ bisa buat project
+     * 
+     * @return bool
+     */
+    public function canCreateProject(): bool
+    {
+        return in_array($this->role, ['supervisi', 'kabag_pgb', 'perizinan']) ||
+               ($this->role === 'karyawan' && $this->bagian === 'PKJ');
+    }
+
+    /**
+     * Check if user can access employee menu
+     * Supervisi, Kabag PGB, Kabag PKJ, dan Staff PKJ bisa akses
+     * 
+     * @return bool
+     */
+    public function canAccessEmployees(): bool
+    {
+        return in_array($this->role, ['supervisi', 'kabag_pgb', 'perizinan']) ||
+               ($this->role === 'karyawan' && $this->bagian === 'PKJ');
+    }
+
+    /**
+     * Check if user can export data
+     * 
+     * @return bool
+     */
+    public function canExport(): bool
+    {
+        return in_array($this->role, ['supervisi', 'kabag_pgb', 'perizinan']) ||
+               ($this->role === 'karyawan' && $this->bagian === 'PKJ');
+    }
+
+    // ============================================
+    // OTHER HELPERS
+    // ============================================
+
     public function pendingRoleRequest()
     {
         return $this->roleRequests()->where('status', 'pending')->first();
     }
 
-    /**
-     * Check if user has pending role request
-     */
     public function hasPendingRoleRequest()
     {
         return $this->roleRequests()->where('status', 'pending')->exists();
     }
 
-    /**
-     * Get the latest role request for the user (regardless of status)
-     */
     public function latestRoleRequest()
     {
         return $this->roleRequests()->latest()->first();
+    }
+
+    public function isPicOf($projectId)
+    {
+        return $this->assignedProjects()
+                    ->where('project_id', $projectId)
+                    ->exists();
     }
 }

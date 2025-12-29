@@ -30,10 +30,18 @@ return [
     // Stats
     'projects' => 'Proyek',
     'activities' => 'Aktivitas',
+    'all_activities' => 'Semua Aktivitas', // NEW
+    'activity_breakdown' => 'Rincian Aktivitas', // NEW
+    'activities_by_status' => 'Aktivitas Berdasarkan Status', // NEW
     'completion_rate' => 'Tingkat Penyelesaian',
     'total_projects' => 'Total Proyek',
     'total_activities' => 'Total Aktivitas',
     'performance_summary' => 'Ringkasan Kinerja',
+
+    // Activity Status Details
+    'done_activities' => 'Selesai', // NEW
+    'progress_activities' => 'Berlangsung', // NEW
+    'pending_activities' => 'Tertunda', // NEW
     
     // Table Headers
     'no' => 'No',
@@ -75,4 +83,47 @@ return [
     'preview_info' => 'Ini adalah pratinjau dokumen yang akan di-export. Klik tombol <strong>"Download PDF Sekarang"</strong> untuk mengunduh file PDF.',
     'document_footer' => 'Dokumen ini digenerate secara otomatis oleh sistem WorkLog - Bank BPD Bali',
     'generated_date' => 'Tanggal Generate',
+
+    'employee_pgb' => 'Karyawan PGB',
+    'employee_pgb_role' => 'Karyawan PGB',
+    'kabag_pgb_role' => 'Kabag PGB',
+    'licensing_pkj' => 'Perizinan PKJ',
+    'licensing_pkj_role' => 'Kabag PKJ',
+
+    // Page Titles
+    'page_title' => 'Data Karyawan',
+    'employee_detail' => 'Detail Karyawan',
+    
+    // Search & Filter
+    'search_placeholder' => 'Cari nama atau email karyawan...',
+    'all_sections' => 'Semua Bagian',
+    'all_roles' => 'Semua Role',
+    'reset' => 'Reset',
+    
+    // Header Counter
+    'employees' => 'Karyawan',
+    'total_registered' => 'Total karyawan terdaftar dalam sistem',
+    'pgb_employee' => 'Karyawan PGB',
+    'pkj_licensing' => 'Perizinan PKJ',
+    'pkj_employee' => 'Karyawan PKJ',
+    
+    // Role Labels
+    'kabag_pgb' => 'Kabag PGB',
+    'kabag_pkj' => 'Kabag PKJ',
+    'employee' => 'Karyawan',
+    
+    // Section
+    'section' => 'Bagian',
+    
+    // Stats
+    'projects' => 'Proyek',
+    'activities' => 'Aktivitas',
+    'completion_rate' => 'Tingkat Penyelesaian',
+    
+    // Buttons
+    'view_detail' => 'Lihat Detail',
+    
+    // Empty States
+    'no_employees' => 'Tidak Ada Data Karyawan',
+    'no_employees_desc' => 'Belum ada karyawan yang terdaftar dalam sistem.',
 ];

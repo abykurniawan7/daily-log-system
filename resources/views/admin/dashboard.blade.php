@@ -136,41 +136,48 @@
                 <div class="p-6 border-b border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 System Overview</h3>
                     
-                    <div class="grid grid-cols-2 md:grid-cols-6 gap-4">
-                        {{-- Total Users by Role --}}
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                        {{-- Admin --}}
                         <div class="text-center p-4 bg-red-50 rounded-lg">
                             <p class="text-sm text-gray-600 mb-1">Admin</p>
-                            <p class="text-2xl font-bold text-red-600">{{ $stats['users']['admin'] }}</p>
+                            <p class="text-2xl font-bold text-red-600">{{ $stats['users']['admin'] ?? 0 }}</p>
                         </div>
                         
+                        {{-- Supervisi --}}
                         <div class="text-center p-4 bg-green-50 rounded-lg">
                             <p class="text-sm text-gray-600 mb-1">Supervisi</p>
-                            <p class="text-2xl font-bold text-green-600">{{ $stats['users']['supervisi'] }}</p>
+                            <p class="text-2xl font-bold text-green-600">{{ $stats['users']['supervisi'] ?? 0 }}</p>
                         </div>
                         
+                        {{-- ✅ REMOVED: Kabag PGB card dihapus --}}
+                        
+                        {{-- PKJ (Kabag + Staff) --}}
                         <div class="text-center p-4 bg-purple-50 rounded-lg">
                             <p class="text-sm text-gray-600 mb-1">PKJ</p>
-                            <p class="text-2xl font-bold text-purple-600">{{ $stats['users']['perizinan'] }}</p>
+                            <p class="text-2xl font-bold text-purple-600">{{ $stats['users']['perizinan'] ?? 0 }}</p>
                         </div>
                         
+                        {{-- PGB (Kabag + Staff) --}}
                         <div class="text-center p-4 bg-yellow-50 rounded-lg">
                             <p class="text-sm text-gray-600 mb-1">PGB</p>
-                            <p class="text-2xl font-bold text-yellow-600">{{ $stats['users']['karyawan'] }}</p>
+                            <p class="text-2xl font-bold text-yellow-600">{{ $stats['users']['karyawan'] ?? 0 }}</p>
                         </div>
                         
+                        {{-- Guest --}}
                         <div class="text-center p-4 bg-gray-50 rounded-lg">
                             <p class="text-sm text-gray-600 mb-1">Guest</p>
-                            <p class="text-2xl font-bold text-gray-600">{{ $stats['users']['guest'] }}</p>
+                            <p class="text-2xl font-bold text-gray-600">{{ $stats['users']['guest'] ?? 0 }}</p>
                         </div>
                         
+                        {{-- Total --}}
                         <div class="text-center p-4 bg-blue-50 rounded-lg">
                             <p class="text-sm text-gray-600 mb-1">Total</p>
-                            <p class="text-2xl font-bold text-blue-600">{{ $stats['users']['total'] }}</p>
+                            <p class="text-2xl font-bold text-blue-600">{{ $stats['users']['total'] ?? 0 }}</p>
                         </div>
                     </div>
                 </div>
                 
-                {{-- Additional System Stats --}}
+                {{-- Additional System Stats tetap sama --}}
                 <div class="p-6 bg-gray-50">
                     <div class="grid grid-cols-2 gap-4">
                         <div class="flex items-center p-4 bg-white rounded-lg shadow-sm">
@@ -179,7 +186,7 @@
                             </svg>
                             <div>
                                 <p class="text-sm text-gray-600">Total Projects</p>
-                                <p class="text-2xl font-bold text-gray-900">{{ $stats['system']['total_projects'] }}</p>
+                                <p class="text-2xl font-bold text-gray-900">{{ $stats['system']['total_projects'] ?? 0 }}</p>
                             </div>
                         </div>
                         
@@ -189,7 +196,7 @@
                             </svg>
                             <div>
                                 <p class="text-sm text-gray-600">Total Activities</p>
-                                <p class="text-2xl font-bold text-gray-900">{{ $stats['system']['total_activities'] }}</p>
+                                <p class="text-2xl font-bold text-gray-900">{{ $stats['system']['total_activities'] ?? 0 }}</p>
                             </div>
                         </div>
                     </div>

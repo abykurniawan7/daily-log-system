@@ -15,38 +15,64 @@
                 </p>
             </div>
             
-            <!-- Quick Actions -->
+            <!-- ✅ REVISED: Quick Actions for NEW ROLES -->
             <div class="flex gap-2 w-full sm:w-auto">
                 @if(auth()->user()->role === 'supervisi')
-                    {{-- Supervisi: Hanya tombol Project --}}
+                    {{-- ✅ UPDATED: Supervisi - Project + Aktivitas --}}
                     <a href="{{ route('projects.create') }}" 
-                    class="flex-1 sm:flex-none inline-flex justify-center items-center px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-md hover:bg-blue-700 transition">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                        </svg>
-                        {{ __('dashboard.add_project') }}
-                    </a>
-                @elseif(auth()->user()->role === 'perizinan')
-                    {{-- Perizinan: Project + Aktivitas --}}
-                    <a href="{{ route('projects.create') }}" 
-                    class="flex-1 sm:flex-none inline-flex justify-center items-center px-3 py-2 bg-blue-600 text-white text-xs font-semibold rounded-md hover:bg-blue-700 transition">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                         </svg>
                         {{ __('dashboard.add_project') }}
                     </a>
                     <a href="{{ route('activities.create') }}" 
-                    class="flex-1 sm:flex-none inline-flex justify-center items-center px-3 py-2 bg-green-600 text-white text-xs font-semibold rounded-md hover:bg-green-700 transition">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 bg-[#0F5132] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#0A3D24] focus:bg-[#0A3D24] active:bg-[#083D22] focus:outline-none focus:ring-2 focus:ring-[#0F5132] focus:ring-offset-2 transition ease-in-out duration-150">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                         </svg>
                         {{ __('dashboard.add_activity') }}
                     </a>
-                @else
-                    {{-- Karyawan PGB: Hanya Aktivitas --}}
+                    
+                @elseif(auth()->user()->role === 'kabag_pgb')
+                    {{-- Kabag PGB - Project + Aktivitas --}}
+                    <a href="{{ route('projects.create') }}" 
+                    class="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        {{ __('dashboard.add_project') }}
+                    </a>
                     <a href="{{ route('activities.create') }}" 
-                    class="flex-1 sm:flex-none inline-flex justify-center items-center px-4 py-2 bg-green-600 text-white text-xs font-semibold rounded-md hover:bg-green-700 transition">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 bg-[#0F5132] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#0A3D24] focus:bg-[#0A3D24] active:bg-[#083D22] focus:outline-none focus:ring-2 focus:ring-[#0F5132] focus:ring-offset-2 transition ease-in-out duration-150">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        {{ __('dashboard.add_activity') }}
+                    </a>
+                    
+                @elseif(auth()->user()->role === 'perizinan')
+                    {{-- Perizinan (Kabag PKJ): Project + Aktivitas --}}
+                    <a href="{{ route('projects.create') }}" 
+                    class="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        {{ __('dashboard.add_project') }}
+                    </a>
+                    <a href="{{ route('activities.create') }}" 
+                    class="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 bg-[#0F5132] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#0A3D24] focus:bg-[#0A3D24] active:bg-[#083D22] focus:outline-none focus:ring-2 focus:ring-[#0F5132] focus:ring-offset-2 transition ease-in-out duration-150">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        {{ __('dashboard.add_activity') }}
+                    </a>
+                    
+                @else
+                    {{-- Karyawan/Staff (PGB atau PKJ): Hanya Aktivitas --}}
+                    <a href="{{ route('activities.create') }}" 
+                    class="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 bg-[#0F5132] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#0A3D24] focus:bg-[#0A3D24] active:bg-[#083D22] focus:outline-none focus:ring-2 focus:ring-[#0F5132] focus:ring-offset-2 transition ease-in-out duration-150">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                         </svg>
                         {{ __('dashboard.add_activity') }}
@@ -166,7 +192,6 @@
                         </div>
                         
                         <div id="divisionChartContainer" style="display: none;">
-                            <!-- ✅ Height 200px untuk 6-7 bars yang ramping -->
                             <div style="position: relative; height: 200px;"> 
                                 <canvas id="projectsPerDivisionChart"></canvas>
                             </div>
@@ -253,7 +278,7 @@
                     </div>
                 </div>
 
-                <!-- Bar Chart: Employee Activities (DIGANTI DARI LINE CHART) -->
+                <!-- Bar Chart: Employee Activities -->
                 <div class="bg-white overflow-hidden shadow-sm rounded-lg">
                     <div class="p-5">
                         <div class="flex items-center justify-between mb-4">
@@ -287,13 +312,24 @@
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-base font-semibold text-gray-900">{{ __('dashboard.recent_activities') }}</h3>
                         
-                        {{-- Link berbeda berdasarkan role --}}
+                        {{-- ✅ FIXED: Link berbeda berdasarkan role --}}
                         @if(auth()->user()->role === 'supervisi')
+                            {{-- Super Admin: Lihat semua aktivitas --}}
+                            <a href="{{ route('activities.index') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium transition">
+                                {{ __('dashboard.view_all') }} →
+                            </a>
+                        @elseif(auth()->user()->role === 'perizinan')
+                            {{-- PKJ: Ke halaman PKJ Activities --}}
+                            <a href="{{ route('activities.index', ['view_bagian' => 'PKJ']) }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium transition">
+                                {{ __('dashboard.view_all') }} →
+                            </a>
+                        @elseif(auth()->user()->role === 'kabag_pgb')
+                            {{-- Kabag PGB: Ke halaman Employee Activities --}}
                             <a href="{{ route('activities.index') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium transition">
                                 {{ __('dashboard.view_all') }} →
                             </a>
                         @else
-                            {{-- PKJ dan PGB ke halaman Aktivitas Saya --}}
+                            {{-- Karyawan: Ke halaman Aktivitas Saya --}}
                             <a href="{{ route('activities.my-activities') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium transition">
                                 {{ __('dashboard.view_all') }} →
                             </a>
@@ -395,27 +431,48 @@
                             @endforeach
                         </div>
                     @else
+                        {{-- ✅ REVISED: Empty State berdasarkan role BARU --}}
                         <div class="text-center py-12">
                             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                             </svg>
                             <h3 class="mt-2 text-sm font-medium text-gray-900">{{ __('dashboard.no_activities_yet') }}</h3>
-                            <p class="mt-1 text-sm text-gray-500">
-                                @if(auth()->user()->role === 'supervisi')
-                                    {{ __('dashboard.no_activities_system') }}
-                                @else
-                                    {{ __('dashboard.start_adding_activities') }}
-                                @endif
-                            </p>
                             
-                            @if(auth()->user()->role !== 'supervisi')
-                            <a href="{{ route('activities.create') }}" 
-                               class="mt-4 inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition shadow-sm hover:shadow-md">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                                </svg>
-                                {{ __('dashboard.add_first_activity') }}
-                            </a>
+                            @if(auth()->user()->role === 'supervisi')
+                                <p class="mt-1 text-sm text-gray-500">
+                                    {{ __('dashboard.no_activities_system') }}
+                                </p>
+                            @elseif(auth()->user()->role === 'kabag_pgb' || auth()->user()->role === 'perizinan')
+                                <p class="mt-1 text-sm text-gray-500">
+                                    Mulai tambahkan aktivitas atau project untuk tim Anda
+                                </p>
+                                <div class="mt-4 flex justify-center gap-2">
+                                    <a href="{{ route('projects.create') }}" 
+                                    class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-sm hover:shadow-md">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                        </svg>
+                                        TAMBAH PROJECT
+                                    </a>
+                                    <a href="{{ route('projects.create') }}" 
+                                    class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-sm hover:shadow-md">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                        </svg>
+                                        TAMBAH PROJECT
+                                    </a>
+                                </div>
+                            @else
+                                <p class="mt-1 text-sm text-gray-500">
+                                    {{ __('dashboard.start_adding_activities') }}
+                                </p>
+                                <a href="{{ route('activities.create') }}" 
+                                class="mt-4 inline-flex items-center px-4 py-2 bg-[#0F5132] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#0A3D24] focus:bg-[#0A3D24] active:bg-[#083D22] focus:outline-none focus:ring-2 focus:ring-[#0F5132] focus:ring-offset-2 transition ease-in-out duration-150 shadow-sm hover:shadow-md">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                    </svg>
+                                    {{ __('dashboard.add_first_activity') }}
+                                </a>
                             @endif
                         </div>
                     @endif
@@ -428,7 +485,7 @@
     <!-- Chart.js Script -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- ✅ CSS untuk Empty State Animation -->
+    <!-- CSS untuk Empty State Animation -->
     <style>
     .empty-chart-icon {
         animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -502,16 +559,12 @@
                 
                 const ctx = document.getElementById('projectsPerDivisionChart').getContext('2d');
                 
-                // ✅ Hitung max value dan round ke kelipatan 5
                 const maxValue = Math.max(...data.map(item => item.total));
                 const xAxisMax = maxValue === 0 ? 5 : Math.ceil(maxValue / 5) * 5;
                 
-                console.log('Division Chart - Max Value:', maxValue, '→ X-Axis Max:', xAxisMax);
-                
-                // ✅ Generate gradient colors
                 const gradientColors = data.map((item, index) => {
                     const gradient = ctx.createLinearGradient(0, 0, 400, 0);
-                    const hue = index * 40; // Variasi warna
+                    const hue = index * 40;
                     gradient.addColorStop(0, `hsla(${hue}, 70%, 60%, 0.9)`);
                     gradient.addColorStop(1, `hsla(${hue}, 70%, 50%, 0.7)`);
                     return gradient;
@@ -527,15 +580,15 @@
                             backgroundColor: gradientColors,
                             hoverBackgroundColor: data.map((item, index) => {
                                 const hue = index * 40;
-                                return `hsla(${hue}, 80%, 55%, 1)`; // ✅ Lebih terang saat hover
+                                return `hsla(${hue}, 80%, 55%, 1)`;
                             }),
                             borderWidth: 0,
                             borderRadius: 6,
-                            barThickness: 20, // ✅ LEBIH RAMPING (dari 28 jadi 20)
+                            barThickness: 20,
                         }]
                     },
                     options: {
-                        indexAxis: 'y', // Horizontal
+                        indexAxis: 'y',
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
@@ -551,7 +604,6 @@
                                         const index = context[0].dataIndex;
                                         const item = data[index];
                                         
-                                        // ✅ Title berbeda untuk Others
                                         if (item.is_others) {
                                             return 'Divisi Lainnya (' + item.details.length + ' divisi)';
                                         }
@@ -562,26 +614,23 @@
                                         const item = data[index];
                                         const total = context.parsed.x;
                                         
-                                        // ✅ Jika bukan Others, tampilkan biasa
                                         if (!item.is_others) {
                                             return `${total} active project${total > 1 ? 's' : ''}`;
                                         }
                                         
-                                        // ✅ Jika Others, return array untuk multi-line tooltip
-                                        return [`Total: ${total} projects`, '']; // Baris kosong sebagai separator
+                                        return [`Total: ${total} projects`, ''];
                                     },
                                     afterLabel: function(context) {
                                         const index = context.dataIndex;
                                         const item = data[index];
                                         
-                                        // ✅ Tampilkan detail divisi jika Others
                                         if (item.is_others && item.details) {
                                             const details = item.details
-                                                .sort((a, b) => b.total - a.total) // Sort by total desc
+                                                .sort((a, b) => b.total - a.total)
                                                 .map(d => `  • ${d.kode}: ${d.total} project${d.total > 1 ? 's' : ''}`)
                                                 .join('\n');
                                             
-                                            return '\n' + details; // ✅ Detail breakdown
+                                            return '\n' + details;
                                         }
                                         
                                         return '';
@@ -592,9 +641,9 @@
                         scales: {
                             x: {
                                 beginAtZero: true,
-                                max: xAxisMax, // ✅ Kelipatan 5
+                                max: xAxisMax,
                                 ticks: { 
-                                    stepSize: 1, // ✅ Tampilkan semua angka (0,1,2,3,...)
+                                    stepSize: 1,
                                     precision: 0,
                                     font: { size: 10 }
                                 },
@@ -609,7 +658,6 @@
                                 ticks: {
                                     font: { size: 10 },
                                     autoSkip: false,
-                                    // ✅ Truncate jika terlalu panjang
                                     callback: function(value, index) {
                                         const label = this.getLabelForValue(value);
                                         return label.length > 12 ? label.substring(0, 12) + '...' : label;
@@ -617,7 +665,6 @@
                                 }
                             }
                         },
-                        // ✅ Animasi smooth
                         animation: {
                             duration: 800,
                             easing: 'easeInOutQuart'
@@ -630,6 +677,7 @@
                 document.getElementById('divisionChartLoading').style.display = 'none';
                 document.getElementById('divisionChartError').style.display = 'block';
             });
+
         // 2. Donut Chart: Activities Status Distribution
         fetch('/api/activities-status-distribution')
             .then(response => response.json())
@@ -745,10 +793,7 @@
                 document.getElementById('userChartLoading').style.display = 'none';
                 document.getElementById('userChartContainer').style.display = 'block';
                 
-                // ✅ Sort data descending by total
                 const sortedData = data.sort((a, b) => b.total - a.total);
-                
-                // ✅ Hitung max value dan round ke kelipatan 5
                 const maxValue = Math.max(...sortedData.map(item => item.total));
                 const yAxisMax = maxValue === 0 ? 5 : Math.ceil(maxValue / 5) * 5;
                 
@@ -758,7 +803,7 @@
                     data: {
                         labels: sortedData.map(item => item.name),
                         datasets: [{
-                            label: 'Total Proyek', // ✅ Fixed label
+                            label: 'Total Proyek',
                             data: sortedData.map(item => item.total),
                             backgroundColor: colors.blue,
                             borderWidth: 0,
@@ -778,7 +823,7 @@
                                 callbacks: {
                                     label: function(context) {
                                         const value = context.parsed.y;
-                                        return `Total Proyek: ${value}`; // ✅ Fixed tooltip
+                                        return `Total Proyek: ${value}`;
                                     }
                                 }
                             }
@@ -788,10 +833,9 @@
                                 grid: { display: false },
                                 ticks: {
                                     autoSkip: false,
-                                    maxRotation: 45, // ✅ Rotasi 45° untuk nama panjang
+                                    maxRotation: 45,
                                     minRotation: 45,
                                     font: { size: 10 },
-                                    // ✅ Truncate nama jika terlalu panjang
                                     callback: function(value, index) {
                                         const label = this.getLabelForValue(value);
                                         return label.length > 15 ? label.substring(0, 15) + '...' : label;
@@ -826,12 +870,10 @@
                 document.getElementById('userChartError').style.display = 'block';
             });
 
-        // 5. Bar Chart: Employee Activities (Last Week - Progress & Pending Combined)
+        // 5. Bar Chart: Employee Activities
         fetch('/api/employee-activities')
             .then(response => response.json())
             .then(data => {
-                console.log('Employee Activities Data:', data);
-                
                 if (!data || data.length === 0) {
                     showEmptyChartState('employeeActivityChartContainer', 'employeeActivityChartLoading', 'No employees found', 'users');
                     return;
@@ -840,14 +882,9 @@
                 document.getElementById('employeeActivityChartLoading').style.display = 'none';
                 document.getElementById('employeeActivityChartContainer').style.display = 'block';
                 
-                // ✅ Sort data descending by total
                 const sortedData = data.sort((a, b) => b.total - a.total);
-                
-                // ✅ Hitung max value dan round ke kelipatan 5
                 const maxValue = Math.max(...sortedData.map(item => item.total));
                 const yAxisMax = maxValue === 0 ? 5 : Math.ceil(maxValue / 5) * 5;
-                
-                console.log('Max Activity Value:', maxValue, '→ Y-Axis Max:', yAxisMax);
                 
                 const ctx = document.getElementById('employeeActivitiesChart').getContext('2d');
                 new Chart(ctx, {
@@ -855,7 +892,7 @@
                     data: {
                         labels: sortedData.map(item => item.name),
                         datasets: [{
-                            label: 'Total Aktivitas', // ✅ Fixed label
+                            label: 'Total Aktivitas',
                             data: sortedData.map(item => item.total),
                             backgroundColor: colors.green,
                             borderWidth: 0,
@@ -875,7 +912,7 @@
                                 callbacks: {
                                     label: function(context) {
                                         const value = context.parsed.y;
-                                        return value > 0 ? `Total Aktivitas: ${value}` : 'Tidak ada aktivitas'; // ✅ Fixed
+                                        return value > 0 ? `Total Aktivitas: ${value}` : 'Tidak ada aktivitas';
                                     },
                                     afterLabel: function(context) {
                                         const index = context.dataIndex;
@@ -898,10 +935,9 @@
                                 grid: { display: false },
                                 ticks: {
                                     autoSkip: false,
-                                    maxRotation: 45, // ✅ Rotasi 45° untuk nama panjang
+                                    maxRotation: 45,
                                     minRotation: 45,
                                     font: { size: 10 },
-                                    // ✅ Truncate nama jika terlalu panjang
                                     callback: function(value, index) {
                                         const label = this.getLabelForValue(value);
                                         return label.length > 15 ? label.substring(0, 15) + '...' : label;
@@ -935,6 +971,5 @@
                 document.getElementById('employeeActivityChartLoading').style.display = 'none';
                 document.getElementById('employeeActivityChartError').style.display = 'block';
             });
-        
     </script>
 </x-app-layout>

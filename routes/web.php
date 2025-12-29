@@ -37,7 +37,17 @@ Route::get('/set-locale/{locale}', function ($locale) {
 // ============================================================================
 
 Route::middleware('auth')->group(function () {
+
+    // Status password requests
+    Route::get('/my-password-requests', [App\Http\Controllers\User\PasswordRequestStatusController::class, 'index'])
+        ->name('user.password-requests.status');
     
+    // Form request password reset untuk user yang sudah login
+    Route::get('/request-password-reset', [App\Http\Controllers\User\PasswordRequestStatusController::class, 'create'])
+        ->name('user.password-requests.create');
+    Route::post('/request-password-reset', [App\Http\Controllers\User\PasswordRequestStatusController::class, 'store'])
+        ->name('user.password-requests.store');
+
     // ========================================
     // SESSION KEEP-ALIVE ROUTES
     // ========================================
@@ -80,13 +90,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/projects/{project:uuid}/export-pdf', [ProjectController::class, 'singleProjectExportPdf'])
         ->name('projects.single-export-pdf');
     
-    // Activities Export (Supervisi only)
-    Route::middleware('supervisi')->group(function () {
-        Route::get('/activities/export-preview', [ActivityController::class, 'exportPreview'])
-            ->name('activities.export-preview');
-        Route::get('/activities/export-pdf', [ActivityController::class, 'exportPdf'])
-            ->name('activities.export-pdf');
-    });
+    // Activities Export - All authorized users
+    Route::get('/activities/export-preview', [ActivityController::class, 'exportPreview'])
+        ->name('activities.export-preview');
+    Route::get('/activities/export-pdf', [ActivityController::class, 'exportPdf'])
+        ->name('activities.export-pdf');
     
     // ========================================
     // PROJECTS CRUD
@@ -110,6 +118,9 @@ Route::middleware('auth')->group(function () {
     // Timeline
     Route::get('/activities/timeline', [ActivityController::class, 'timeline'])
         ->name('activities.timeline');
+
+    Route::get('/activities/{activity}/download-attachment', [ActivityController::class, 'downloadAttachment'])
+        ->name('activities.download-attachment');
     
     // Activities CRUD
     Route::resource('activities', ActivityController::class);
@@ -164,24 +175,24 @@ Route::middleware('auth')->group(function () {
     })->name('activities.json');
     
     // ========================================
-    // EMPLOYEES (Supervisi only)
+    // EMPLOYEES (Supervisi & Kabag PGB)
     // ========================================
-    Route::middleware('supervisi')->group(function () {
-        Route::get('/employees', [EmployeeController::class, 'index'])
-            ->name('employees.index');
-        
-        Route::get('/employees/export-all-pdf', [EmployeeController::class, 'exportAllPdf'])
-            ->name('employees.export.all-pdf');
 
-        Route::get('/employees/{user}/export-preview', [EmployeeController::class, 'exportPreview'])
-            ->name('employees.export-preview');
+    // ✅ Employee Index & Show - Accessible by Supervisi & Kabag PGB
+    Route::get('/employees', [EmployeeController::class, 'index'])
+        ->name('employees.index');
 
-        Route::get('/employees/{user}/export-pdf', [EmployeeController::class, 'exportPdf'])
-            ->name('employees.export-pdf');
+    Route::get('/employees/{user:uuid}', [EmployeeController::class, 'show'])
+        ->name('employees.show');
 
-        Route::get('/employees/{user:uuid}', [EmployeeController::class, 'show'])
-            ->name('employees.show');
-    });
+    Route::get('/employees/export-all-pdf', [EmployeeController::class, 'exportAllPdf'])
+        ->name('employees.export.all-pdf');
+
+    Route::get('/employees/{user}/export-preview', [EmployeeController::class, 'exportPreview'])
+        ->name('employees.export-preview');
+
+    Route::get('/employees/{user}/export-pdf', [EmployeeController::class, 'exportPdf'])
+        ->name('employees.export-pdf');
 
     // ========================================
     // ROLE REQUEST ROUTES (Guest User)
@@ -233,6 +244,19 @@ Route::middleware('auth')->group(function () {
             ->name('role-requests.bulk-approve');
         Route::delete('/role-requests/{roleRequest}', [AdminRoleRequestController::class, 'destroy'])
             ->name('role-requests.destroy');
+
+        // Password Reset Requests
+        Route::get('/password-requests', [App\Http\Controllers\Admin\PasswordResetRequestController::class, 'index'])
+            ->name('password-requests.index');
+        
+        Route::get('/password-requests/{passwordResetRequest}', [App\Http\Controllers\Admin\PasswordResetRequestController::class, 'show'])
+            ->name('password-requests.show');
+        
+        Route::post('/password-requests/{passwordResetRequest}/approve', [App\Http\Controllers\Admin\PasswordResetRequestController::class, 'approve'])
+            ->name('password-requests.approve');
+        
+        Route::post('/password-requests/{passwordResetRequest}/reject', [App\Http\Controllers\Admin\PasswordResetRequestController::class, 'reject'])
+            ->name('password-requests.reject');
 
         // Activity Logs Management
         Route::prefix('activity-logs')->name('activity-logs.')->group(function () {

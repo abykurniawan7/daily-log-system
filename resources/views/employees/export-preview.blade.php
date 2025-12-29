@@ -80,7 +80,13 @@
                             <div>
                                 <p class="text-sm text-gray-600">{{ __('employees.role') }}</p>
                                 <p class="font-semibold text-gray-900">
-                                    {{ $employee->role === 'karyawan' ? __('employees.employee_pgb_role') : __('employees.licensing_pkj_role') }}
+                                    @if($employee->role === 'karyawan')
+                                        {{ __('employees.employee_pgb_role') }}
+                                    @elseif($employee->role === 'kabag_pgb')
+                                        {{ __('employees.kabag_pgb_role') }}
+                                    @else
+                                        {{ __('employees.licensing_pkj_role') }}
+                                    @endif
                                 </p>
                             </div>
                             @if($employee->bagian)
@@ -132,7 +138,7 @@
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
-                                    @forelse($employee->projects as $index => $project)
+                                    @forelse($projects as $index => $project)
                                     <tr>
                                         <td class="px-4 py-3 text-sm text-gray-900">{{ $index + 1 }}</td>
                                         <td class="px-4 py-3 text-sm text-gray-900">{{ $project->nama_project }}</td>
@@ -152,10 +158,10 @@
                                             @endif
                                         </td>
                                         <td class="px-4 py-3 text-sm text-gray-600">
-                                            {{ \Carbon\Carbon::parse($project->tanggal_mulai)->format('d M Y') }}
+                                            {{ \Carbon\Carbon::parse($project->tanggal_inisiasi)->format('d M Y') }}
                                         </td>
                                         <td class="px-4 py-3 text-sm text-gray-600">
-                                            {{ \Carbon\Carbon::parse($project->deadline)->format('d M Y') }}
+                                            {{ $project->target_implementasi }}
                                         </td>
                                     </tr>
                                     @empty

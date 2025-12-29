@@ -14,7 +14,9 @@
 namespace App\Models{
 /**
  * @property int $id
+ * @property string $uuid
  * @property int $project_id
+ * @property string $project_uuid
  * @property int $user_id
  * @property \Illuminate\Support\Carbon $tanggal_mulai
  * @property \Illuminate\Support\Carbon|null $tanggal_selesai
@@ -26,7 +28,7 @@ namespace App\Models{
  * @property string|null $lampiran_link
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\Project $project
+ * @property-read \App\Models\Project|null $project
  * @property-read \App\Models\User $user
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Activity newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Activity newQuery()
@@ -39,11 +41,13 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Activity whereLampiranLink($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Activity whereNamaAktivitas($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Activity whereProjectId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Activity whereProjectUuid($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Activity whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Activity whereTanggalMulai($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Activity whereTanggalSelesai($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Activity whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Activity whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Activity whereUuid($value)
  */
 	class Activity extends \Eloquent {}
 }
@@ -155,6 +159,39 @@ namespace App\Models{
 namespace App\Models{
 /**
  * @property int $id
+ * @property int $user_id
+ * @property string $encrypted_email
+ * @property string|null $reason
+ * @property string $status
+ * @property string|null $admin_notes
+ * @property int|null $processed_by
+ * @property \Illuminate\Support\Carbon|null $processed_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read mixed $email
+ * @property-read \App\Models\User|null $processedBy
+ * @property-read \App\Models\User $user
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PasswordResetRequest newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PasswordResetRequest newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PasswordResetRequest query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PasswordResetRequest whereAdminNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PasswordResetRequest whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PasswordResetRequest whereEncryptedEmail($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PasswordResetRequest whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PasswordResetRequest whereProcessedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PasswordResetRequest whereProcessedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PasswordResetRequest whereReason($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PasswordResetRequest whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PasswordResetRequest whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PasswordResetRequest whereUserId($value)
+ */
+	class PasswordResetRequest extends \Eloquent {}
+}
+
+namespace App\Models{
+/**
+ * @property int $id
+ * @property string $uuid
  * @property \Illuminate\Support\Carbon $tanggal_inisiasi
  * @property string $target_implementasi
  * @property string $nama_project
@@ -163,6 +200,7 @@ namespace App\Models{
  * @property string|null $deskripsi
  * @property int $pemilik_project_id
  * @property int $pic_proyek_id
+ * @property int|null $pengawas_id
  * @property int|null $user_id
  * @property string $status
  * @property \Illuminate\Support\Carbon|null $created_at
@@ -171,7 +209,10 @@ namespace App\Models{
  * @property-read int|null $activities_count
  * @property-read \App\Models\User|null $creator
  * @property-read \App\Models\Division $pemilikProject
+ * @property-read \App\Models\User|null $pengawas
  * @property-read \App\Models\User $picProyek
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $pics
+ * @property-read int|null $pics_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project query()
@@ -180,6 +221,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereNamaProject($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project wherePemilikProjectId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project wherePengawasId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project wherePicProyekId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereSifatProject($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereStatus($value)
@@ -188,6 +230,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereUrgensi($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereUuid($value)
  */
 	class Project extends \Eloquent {}
 }
@@ -243,6 +286,7 @@ namespace App\Models{
 namespace App\Models{
 /**
  * @property int $id
+ * @property string $uuid
  * @property string $name
  * @property string $email
  * @property \Illuminate\Support\Carbon|null $email_verified_at
@@ -250,10 +294,12 @@ namespace App\Models{
  * @property string|null $remember_token
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property string $role
+ * @property string|null $role
  * @property string|null $bagian
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Activity> $activities
  * @property-read int|null $activities_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Project> $assignedProjects
+ * @property-read int|null $assigned_projects_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Project> $createdProjects
  * @property-read int|null $created_projects_count
  * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
@@ -278,6 +324,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereRememberToken($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereRole($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUuid($value)
  */
 	class User extends \Eloquent {}
 }

@@ -98,4 +98,8 @@ return [
     // Divisions
     'pkj' => 'PKJ',
     'pgb' => 'PGB',
+
+    'me' => 'Saya',
+    'people' => 'orang',
+    'kabag' => 'Kabag',
 ];

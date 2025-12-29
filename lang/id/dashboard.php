@@ -8,7 +8,7 @@ return [
     'your_projects' => 'Proyek yang Anda emban dan aktivitas yang Anda kerjakan',
     
     // Quick Actions
-    'add_project' => 'Proyek',
+    'add_project' => 'PROYEK',
     'add_activity' => 'Aktivitas',
     
     // Stats Cards

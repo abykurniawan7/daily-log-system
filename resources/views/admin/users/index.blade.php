@@ -42,7 +42,8 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
             {{-- Stats Cards --}}
-            <div class="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                <!-- Total User -->
                 <div class="bg-white overflow-hidden shadow rounded-lg">
                     <div class="p-5">
                         <div class="flex items-center">
@@ -61,6 +62,7 @@
                     </div>
                 </div>
 
+                <!-- Admin -->
                 <div class="bg-white overflow-hidden shadow rounded-lg">
                     <div class="p-5">
                         <div class="flex items-center">
@@ -79,6 +81,7 @@
                     </div>
                 </div>
 
+                <!-- Supervisi -->
                 <div class="bg-white overflow-hidden shadow rounded-lg">
                     <div class="p-5">
                         <div class="flex items-center">
@@ -98,6 +101,9 @@
                     </div>
                 </div>
 
+                <!-- ✅ REMOVED: Kabag PGB Card dihapus -->
+
+                <!-- PKJ (Kabag + Staff) -->
                 <div class="bg-white overflow-hidden shadow rounded-lg">
                     <div class="p-5">
                         <div class="flex items-center">
@@ -116,6 +122,7 @@
                     </div>
                 </div>
 
+                <!-- PGB (Kabag + Staff) -->
                 <div class="bg-white overflow-hidden shadow rounded-lg">
                     <div class="p-5">
                         <div class="flex items-center">
@@ -134,6 +141,7 @@
                     </div>
                 </div>
 
+                <!-- Guest -->
                 <div class="bg-white overflow-hidden shadow rounded-lg">
                     <div class="p-5">
                         <div class="flex items-center">
@@ -233,10 +241,21 @@
                                                     'perizinan' => 'bg-purple-100 text-purple-800',
                                                     'karyawan' => 'bg-yellow-100 text-yellow-800',
                                                     'guest' => 'bg-gray-100 text-gray-800',
+                                                    'kabag_pgb' => 'bg-blue-100 text-blue-800',
                                                 ];
                                             @endphp
-                                            <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $roleColors[$user->role] }}">
-                                                {{ ucfirst($user->role) }}
+                                            @php
+                                                $roleLabels = [
+                                                    'admin' => 'Admin',
+                                                    'supervisi' => 'Supervisi',
+                                                    'perizinan' => 'Perizinan',
+                                                    'karyawan' => 'Karyawan',
+                                                    'guest' => 'Guest',
+                                                    'kabag_pgb' => 'Kabag PGB', // ✅ Custom label
+                                                ];
+                                            @endphp
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $roleColors[$user->role] ?? 'bg-gray-100 text-gray-800' }}">
+                                                {{ $roleLabels[$user->role] ?? ucfirst(str_replace('_', ' ', $user->role)) }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 text-sm text-gray-600">

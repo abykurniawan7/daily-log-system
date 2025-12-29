@@ -38,14 +38,36 @@ class UserManagementController extends Controller
         
         $users = $query->orderBy('created_at', 'desc')->paginate(10);
         
-        // Stats
+        // ✅ FIXED: Stats - Hitung PKJ & PGB dengan benar
+        $pkjCount = User::where(function($query) {
+            $query->where('role', 'perizinan') // Kabag PKJ
+                  ->orWhere(function($q) {
+                      $q->where('role', 'karyawan')
+                        ->where('bagian', 'PKJ'); // Staff PKJ
+                  });
+        })->count();
+        
+        $pgbCount = User::where(function($query) {
+            $query->where('role', 'kabag_pgb') // Kabag PGB
+                  ->orWhere(function($q) {
+                      $q->where('role', 'karyawan')
+                        ->where('bagian', 'PGB'); // Staff PGB
+                  });
+        })->count();
+        
         $stats = [
             'total' => User::count(),
             'admin' => User::where('role', 'admin')->count(),
             'supervisi' => User::where('role', 'supervisi')->count(),
-            'perizinan' => User::where('role', 'perizinan')->count(),
-            'karyawan' => User::where('role', 'karyawan')->count(),
+            
+            // ✅ FIXED: PKJ sekarang include Kabag + Staff
+            'perizinan' => $pkjCount,
+            
+            // ✅ FIXED: PGB sekarang include Kabag + Staff  
+            'karyawan' => $pgbCount,
+            
             'guest' => User::where('role', 'guest')->count(),
+            // ✅ REMOVED: kabag_pgb sudah termasuk dalam 'karyawan' (PGB)
         ];
         
         return view('admin.users.index', compact('users', 'stats'));

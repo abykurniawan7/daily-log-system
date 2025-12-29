@@ -7,8 +7,12 @@ return [
     'role_requests' => 'Permintaan Role',
     'projects' => 'Proyek',
     'employees' => 'Karyawan',
+    'activities' => 'Aktivitas',
     'employee_activities' => 'Aktivitas Karyawan',
     'my_activities' => 'Aktivitas Saya',
+    'my_projects' => 'Proyek Saya',
+    'pkj_activities' => 'Aktivitas PKJ',
+    'all_projects' => 'Semua Proyek',
     'profile' => 'Profil',
     
     // Sections

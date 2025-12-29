@@ -16,10 +16,10 @@ class DatabaseSeeder extends Seeder
         // Urutan PENTING! Parent dulu, baru child
         $this->call([
             DivisionSeeder::class,   // 1. Division dulu (parent)
-            TestingDataSeeder::class,   // Then seed testing data
+            // TestingDataSeeder::class,   // Then seed testing data
             UserSeeder::class,       // 2. User kedua (parent)
-            ProjectSeeder::class,    // 3. Project ketiga (butuh Division & User)
-            ActivitySeeder::class,   // 4. Activity terakhir (butuh Project & User)
+            // ProjectSeeder::class,    // 3. Project ketiga (butuh Division & User)
+            // ActivitySeeder::class,   // 4. Activity terakhir (butuh Project & User)
         ]);
     }
 }

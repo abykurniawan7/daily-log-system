@@ -15,11 +15,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'supervisi' => \App\Http\Middleware\SupervisiMiddleware::class,
             'admin' => \App\Http\Middleware\CheckAdmin::class,
+            'kabag.pgb' => \App\Http\Middleware\CheckKabagPGB::class,
             'karyawan' => \App\Http\Middleware\KaryawanMiddleware::class,
             'perizinan' => \App\Http\Middleware\PerizinanMiddleware::class,
             'guest.check' => \App\Http\Middleware\CheckGuest::class,
             'session.timeout' => \App\Http\Middleware\SessionTimeout::class,
             'optimize.response' => \App\Http\Middleware\OptimizeResponse::class,
+            'employee.access' => \App\Http\Middleware\CheckEmployeeAccess::class,
         ]);
 
          $middleware->web(append: [

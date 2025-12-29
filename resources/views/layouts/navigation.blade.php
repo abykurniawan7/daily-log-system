@@ -15,6 +15,10 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+
+                    <x-nav-link :href="route('user.password-requests.status')" :active="request()->routeIs('user.password-requests.status')">
+                        {{ __('Status Reset Password') }}
+                    </x-nav-link>
                     
                     <x-nav-link :href="route('projects.index')" :active="request()->routeIs('projects.*')">
                         {{ __('Projects') }}
@@ -24,20 +28,21 @@
                         {{ __('Activities') }}
                     </x-nav-link>
                     
-                    <!-- Menu Karyawan - hanya untuk Supervisi -->
-                    @if(auth()->user()->role === 'supervisi')
+                    {{-- ✅ UPDATED: Menu Karyawan - untuk Supervisi, Kabag PGB, dan semua PKJ --}}
+                    @if(auth()->user()->canAccessEmployees())
                         <x-nav-link :href="route('employees.index')" :active="request()->routeIs('employees.*')">
                             {{ __('Karyawan') }}
                         </x-nav-link>
                     @endif
                     
-                    <!-- Menu Aktivitas Saya - hanya untuk non-supervisi -->
+                    {{-- Menu Aktivitas Saya - hanya untuk non-supervisi --}}
                     @if(auth()->user()->role !== 'supervisi')
                         <x-nav-link :href="route('activities.my-activities')" :active="request()->routeIs('activities.my-activities')">
                             {{ __('Aktivitas Saya') }}
                         </x-nav-link>
                     @endif
                 </div>
+            </div>
 
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
@@ -89,6 +94,10 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+
+            <x-responsive-nav-link :href="route('user.password-requests.status')" :active="request()->routeIs('user.password-requests.status')">
+                {{ __('Status Reset Password') }}
+            </x-responsive-nav-link>
             
             <x-responsive-nav-link :href="route('projects.index')" :active="request()->routeIs('projects.*')">
                 {{ __('Projects') }}
@@ -98,14 +107,14 @@
                 {{ __('Activities') }}
             </x-responsive-nav-link>
             
-            <!-- Menu Karyawan - hanya untuk Supervisi -->
-            @if(auth()->user()->role === 'supervisi')
+            {{-- ✅ UPDATED: Menu Karyawan - untuk Supervisi, Kabag PGB, dan semua PKJ --}}
+            @if(auth()->user()->canAccessEmployees())
                 <x-responsive-nav-link :href="route('employees.index')" :active="request()->routeIs('employees.*')">
                     {{ __('Karyawan') }}
                 </x-responsive-nav-link>
             @endif
             
-            <!-- Menu Aktivitas Saya - hanya untuk non-supervisi -->
+            {{-- Menu Aktivitas Saya - hanya untuk non-supervisi --}}
             @if(auth()->user()->role !== 'supervisi')
                 <x-responsive-nav-link :href="route('activities.my-activities')" :active="request()->routeIs('activities.my-activities')">
                     {{ __('Aktivitas Saya') }}

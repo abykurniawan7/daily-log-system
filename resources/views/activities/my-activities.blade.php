@@ -11,6 +11,16 @@
         </div>
     @endif
 
+    {{-- ✅ TAMBAHAN: Alert Error --}}
+    @if (session('error'))
+        <div class="mb-4 mx-auto max-w-7xl sm:px-6 lg:px-8 mt-4">
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                <strong class="font-bold">{{ __('activities.error') }}</strong>
+                <span class="block sm:inline">{{ session('error') }}</span>
+            </div>
+        </div>
+    @endif
+
     <x-slot name="header">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
@@ -22,7 +32,7 @@
                 </p>
             </div>
             <a href="{{ route('activities.create') }}" 
-               class="btn-green inline-flex items-center">
+            class="inline-flex items-center px-4 py-2 bg-[#0F5132] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#0A3D24] focus:bg-[#0A3D24] active:bg-[#083D22] focus:outline-none focus:ring-2 focus:ring-[#0F5132] focus:ring-offset-2 transition ease-in-out duration-150">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                 </svg>
@@ -152,18 +162,18 @@
                                 <!-- Action Buttons -->
                                 <div class="flex gap-2">
                                     <button type="submit" 
-                                            class="btn-green p-2.5 shadow-sm"
+                                            class="inline-flex items-center justify-center p-2.5 bg-blue-600 border border-transparent rounded-md text-white hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-sm"
                                             title="{{ __('activities.apply_filter') }}">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
                                         </svg>
                                     </button>
                                     <a href="{{ route('activities.my-activities') }}" 
-                                       class="p-2.5 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition shadow-sm"
-                                       title="{{ __('activities.reset_filter') }}">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                                        </svg>
+                                        class="inline-flex items-center justify-center p-2.5 bg-gray-300 border border-transparent rounded-md text-gray-700 hover:bg-gray-400 focus:bg-gray-400 active:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-sm"
+                                        title="{{ __('activities.reset_filter') }}">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                            </svg>
                                     </a>
                                 </div>
                             </div>
@@ -253,11 +263,11 @@
                                         <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
                                             <div class="flex items-center justify-center gap-1">
                                                 <a href="{{ route('activities.edit', $activity) }}" 
-                                                class="btn-icon-yellow"
-                                                title="{{ __('activities.edit') }}">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                                    </svg>
+                                                    class="inline-flex items-center justify-center p-1.5 bg-yellow-500 border border-transparent rounded-md text-white hover:bg-yellow-600 focus:bg-yellow-600 active:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                                                    title="{{ __('activities.edit') }}">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                                        </svg>
                                                 </a>
                                                 
                                                 <form action="{{ route('activities.destroy', $activity) }}" 
@@ -267,7 +277,7 @@
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" 
-                                                            class="btn-icon-red"
+                                                            class="inline-flex items-center justify-center p-1.5 bg-red-600 border border-transparent rounded-md text-white hover:bg-red-700 focus:bg-red-700 active:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150"
                                                             title="{{ __('activities.delete') }}">
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -350,7 +360,7 @@
 
                                 <div class="mt-3 pt-3 border-t border-gray-200 flex gap-2" onclick="event.stopPropagation()">
                                     <a href="{{ route('activities.edit', $activity) }}" 
-                                    class="btn-yellow flex-1 inline-flex items-center justify-center text-xs">
+                                    class="flex-1 inline-flex items-center justify-center px-3 py-2 bg-yellow-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-600 focus:bg-yellow-600 active:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                         </svg>
@@ -364,7 +374,7 @@
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" 
-                                                class="btn-red w-full inline-flex items-center justify-center text-xs">
+                                                class="flex-1 inline-flex items-center justify-center px-3 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:bg-red-700 active:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                             </svg>
@@ -381,12 +391,17 @@
                             {{ $activities->appends(request()->query())->links() }}
                         </div>
 
-                        {{-- Preview Export Button (Bottom Right) - SUPERVISI & PKJ --}}
-                        @if(auth()->user()->role === 'supervisi' || auth()->user()->role === 'perizinan')
+                        {{-- Preview Export Button (Bottom Right) --}}
+                        @if(
+                            auth()->user()->role === 'supervisi' ||
+                            auth()->user()->role === 'kabag_pgb' ||
+                            auth()->user()->role === 'perizinan' ||
+                            (auth()->user()->role === 'karyawan' && in_array(auth()->user()->bagian, ['PKJ', 'PGB']))
+                        )
                             <div class="mt-6 pt-6 border-t border-gray-200">
                                 <div class="flex justify-end">
                                     <a href="{{ route('activities.my-activities-export-preview', request()->query()) }}" 
-                                    class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:bg-red-700 active:bg-red-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                    class="inline-flex items-center px-4 py-2 bg-[#0F5132] hover:bg-[#0A3D24] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-[#0F5132] focus:ring-offset-2 transition ease-in-out duration-150 shadow-md hover:shadow-lg">
                                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -415,7 +430,7 @@
                             </p>
                             <div class="mt-6">
                                 <a href="{{ route('activities.create') }}" 
-                                    class="btn-green inline-flex items-center">
+                                    class="inline-flex items-center px-4 py-2 bg-[#0F5132] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#0A3D24] focus:bg-[#0A3D24] active:bg-[#083D22] focus:outline-none focus:ring-2 focus:ring-[#0F5132] focus:ring-offset-2 transition ease-in-out duration-150">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                                     </svg>

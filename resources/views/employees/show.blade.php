@@ -39,7 +39,13 @@
                         <p class="text-white/90 mb-1">{{ $employee->email }}</p>
                         <div class="flex items-center gap-4 mt-3">
                             <span class="px-3 py-1 bg-white/20 rounded-full text-sm font-medium backdrop-blur-sm">
-                                {{ $employee->role === 'karyawan' ? __('employees.employee_pgb') : __('employees.licensing_pkj') }}
+                                @if($employee->role === 'karyawan')
+                                    {{ __('employees.employee_pgb') }}
+                                @elseif($employee->role === 'kabag_pgb')
+                                    {{ __('employees.kabag_pgb_role') }}
+                                @else
+                                    {{ __('employees.licensing_pkj') }}
+                                @endif
                             </span>
                             @if($employee->bagian)
                             <span class="px-3 py-1 bg-white/20 rounded-full text-sm font-medium backdrop-blur-sm">
@@ -133,7 +139,7 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            @forelse($employee->projects as $project)
+                            @forelse($projects as $project)
                             <tr class="hover:bg-green-50 transition-colors cursor-pointer group" 
                                 onclick="window.location='{{ route('projects.show', $project) }}';">
                                 <td class="px-6 py-4 whitespace-nowrap">
@@ -158,10 +164,10 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ \Carbon\Carbon::parse($project->tanggal_mulai)->format('d M Y') }}
+                                    {{ \Carbon\Carbon::parse($project->tanggal_inisiasi)->format('d M Y') }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ \Carbon\Carbon::parse($project->deadline)->format('d M Y') }}
+                                    {{ $project->target_implementasi }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm text-gray-900">
@@ -198,11 +204,11 @@
                 </div>
 
                 {{-- Tombol Preview Export PDF di Kanan Bawah --}}
-                @if($employee->projects->isNotEmpty())
+                @if($projects->isNotEmpty())
                 <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end">
                     <a href="{{ route('employees.export-preview', $employee) }}" 
-                       class="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
-                       style="background: linear-gradient(135deg, var(--primary-green, #0F5132) 0%, var(--primary-green-light, #1B6B47) 100%);">
+                    class="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
+                    style="background: linear-gradient(135deg, var(--primary-green, #0F5132) 0%, var(--primary-green-light, #1B6B47) 100%);">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>

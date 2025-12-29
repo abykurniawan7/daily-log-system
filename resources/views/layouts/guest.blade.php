@@ -8,6 +8,10 @@
         {{-- TITLE TAB BROWSER --}}
         <title>Login - WorkLog System Bank BPD Bali</title>
 
+        {{-- FAVICON - ICON TAB BROWSER --}}
+        <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+        <link rel="shortcut icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />

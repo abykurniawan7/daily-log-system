@@ -8,10 +8,11 @@
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
             
-            {{-- Sticky Action Buttons - Positioned Between Header and Content --}}
+            {{-- ✅ FIXED: Sticky Action Buttons with Dynamic Back Button --}}
             <div class="sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-4 mb-6 shadow-sm sm:rounded-lg">
                 <div class="max-w-7xl mx-auto flex items-center justify-between">
-                    <a href="{{ route('activities.index', request()->query()) }}" 
+                    {{-- ✅ Changed from route('activities.index') to url()->previous() --}}
+                    <a href="{{ url()->previous() }}" 
                        class="inline-flex items-center px-4 py-2 bg-gray-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-600 transition">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
@@ -20,8 +21,19 @@
                     </a>
 
                     @if($activities->count() > 0)
-                        <a href="{{ route('activities.export-pdf', request()->query()) }}" 
-                           class="inline-flex items-center px-6 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 transition">
+                        {{-- ✅ FIXED: Dynamic Route Based on Referrer --}}
+                        @php
+                            $referrer = url()->previous();
+                            $isMyActivities = str_contains($referrer, '/my-activities');
+                            
+                            // Tentukan route berdasarkan dari mana user datang
+                            $exportRoute = $isMyActivities 
+                                ? route('activities.my-activities-export-pdf', request()->query())
+                                : route('activities.export-pdf', request()->query());
+                        @endphp
+                        
+                        <a href="{{ $exportRoute }}" 
+                        class="inline-flex items-center px-6 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 transition">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
@@ -99,6 +111,9 @@
                                             @break
                                         @case('bagian')
                                             🏢 Bagian:
+                                            @break
+                                        @case('Scope')
+                                            👤 Scope:
                                             @break
                                     @endswitch
                                 </span>

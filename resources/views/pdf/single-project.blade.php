@@ -281,8 +281,12 @@
     <div class="summary">
         <div class="summary-grid">
             <div class="summary-item">
-                <div class="summary-value">{{ $activitiesPGB->count() + $activitiesPKJ->count() }}</div>
+                <div class="summary-value">{{ $activitiesSuperadmin->count() + $activitiesPGB->count() + $activitiesPKJ->count() }}</div>
                 <div class="summary-label">Total Aktivitas</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-value">{{ $activitiesSuperadmin->count() }}</div>
+                <div class="summary-label">Supervisi</div>
             </div>
             <div class="summary-item">
                 <div class="summary-value">{{ $activitiesPGB->count() }}</div>
@@ -293,19 +297,70 @@
                 <div class="summary-label">{{ __('projects.pkj') }}</div>
             </div>
             <div class="summary-item">
-                <div class="summary-value">{{ $activitiesPGB->where('status', 'Progress')->count() + $activitiesPKJ->where('status', 'Progress')->count() }}</div>
+                <div class="summary-value">{{ $activitiesSuperadmin->where('status', 'Progress')->count() + $activitiesPGB->where('status', 'Progress')->count() + $activitiesPKJ->where('status', 'Progress')->count() }}</div>
                 <div class="summary-label">{{ __('projects.progress') }}</div>
             </div>
             <div class="summary-item">
-                <div class="summary-value">{{ $activitiesPGB->where('status', 'Pending')->count() + $activitiesPKJ->where('status', 'Pending')->count() }}</div>
+                <div class="summary-value">{{ $activitiesSuperadmin->where('status', 'Pending')->count() + $activitiesPGB->where('status', 'Pending')->count() + $activitiesPKJ->where('status', 'Pending')->count() }}</div>
                 <div class="summary-label">{{ __('projects.pending') }}</div>
             </div>
             <div class="summary-item">
-                <div class="summary-value">{{ $activitiesPGB->where('status', 'Done')->count() + $activitiesPKJ->where('status', 'Done')->count() }}</div>
+                <div class="summary-value">{{ $activitiesSuperadmin->where('status', 'Done')->count() + $activitiesPGB->where('status', 'Done')->count() + $activitiesPKJ->where('status', 'Done')->count() }}</div>
                 <div class="summary-label">{{ __('projects.done') }}</div>
             </div>
         </div>
     </div>
+
+    {{-- ✅ NEW SECTION: Superadmin/Kadiv Activities --}}
+    @if($activitiesSuperadmin->count() > 0)
+    <div class="section">
+        <div class="section-title">Supervisi ({{ $activitiesSuperadmin->count() }} {{ __('projects.total_activities') }})</div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 3%;">{{ __('projects.no') }}</th>
+                    <th style="width: 22%;">{{ __('projects.activity_name') }}</th>
+                    <th style="width: 12%;">{{ __('projects.person_in_charge') }}</th>
+                    <th style="width: 12%;">{{ __('projects.date') }}</th>
+                    <th style="width: 35%;">{{ __('projects.description') }}</th>
+                    <th style="width: 8%;">{{ __('projects.status') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($activitiesSuperadmin->values() as $activity)
+                    <tr>
+                        <td>{{ $loop->iteration }}</td>
+                        <td>
+                            <strong>{{ $activity->nama_aktivitas }}</strong><br>
+                            <small style="color: #666;">{{ $activity->jenis_kegiatan }}</small>
+                        </td>
+                        <td>{{ $activity->user->name }}</td>
+                        <td>
+                            {{ $activity->tanggal_mulai->format('d/m/Y') }}
+                            @if($activity->tanggal_selesai)
+                                <br><small>s/d {{ $activity->tanggal_selesai->format('d/m/Y') }}</small>
+                            @endif
+                        </td>
+                        <td>{{ $activity->deskripsi ?? '-' }}</td>
+                        <td>
+                            @php
+                                $statusLabels = [
+                                    'Progress' => __('projects.in_progress'),
+                                    'Pending' => __('projects.pending_status'),
+                                    'Done' => __('projects.completed')
+                                ];
+                            @endphp
+                            <span class="badge status-{{ strtolower($activity->status) }}">
+                                {{ $statusLabels[$activity->status] }}
+                            </span>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+    @endif
 
     <div class="section">
         <div class="section-title">{{ __('projects.pgb') }} ({{ $activitiesPGB->count() }} {{ __('projects.total_activities') }})</div>
@@ -320,7 +375,6 @@
                         <th style="width: 12%;">{{ __('projects.date') }}</th>
                         <th style="width: 35%;">{{ __('projects.description') }}</th>
                         <th style="width: 8%;">{{ __('projects.status') }}</th>
-                        {{-- <th style="width: 8%;">Lampiran</th> --}}
                     </tr>
                 </thead>
                 <tbody>
@@ -351,7 +405,6 @@
                                     {{ $statusLabels[$activity->status] }}
                                 </span>
                             </td>
-                            {{-- <td>{{ $activity->lampiran || $activity->lampiran_link ? '✓' : '-' }}</td> --}}
                         </tr>
                     @endforeach
                 </tbody>
@@ -374,7 +427,6 @@
                         <th style="width: 12%;">{{ __('projects.date') }}</th>
                         <th style="width: 35%;">{{ __('projects.description') }}</th>
                         <th style="width: 8%;">{{ __('projects.status') }}</th>
-                        {{-- <th style="width: 8%;">Lampiran</th> --}}
                     </tr>
                 </thead>
                 <tbody>
@@ -405,7 +457,6 @@
                                     {{ $statusLabels[$activity->status] }}
                                 </span>
                             </td>
-                            {{-- <td>{{ $activity->lampiran || $activity->lampiran_link ? '✓' : '-' }}</td> --}}
                         </tr>
                     @endforeach
                 </tbody>
