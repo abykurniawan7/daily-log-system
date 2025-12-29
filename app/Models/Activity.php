@@ -14,6 +14,7 @@ class Activity extends Model
         'uuid', // ✅ TAMBAHKAN
         'project_id', // ✅ Tetap ada untuk compatibility
         'project_uuid', // ✅ TAMBAHKAN
+        'placeholder_project_name',
         'user_id',
         'tanggal_mulai',
         'tanggal_selesai',

@@ -236,32 +236,10 @@ return [
     'others' => 'Lainnya',
     'enter_other_type' => 'Masukkan jenis kegiatan lainnya...',
 
-    // Helper Info untuk Role
-    'kadiv_helper_title' => '🔰 Catatan untuk Kadiv',
-    'kadiv_helper_1' => 'Anda dapat menambah aktivitas di project yang Anda buat sendiri',
-    'kadiv_helper_2' => 'Anda DAPAT mengedit aktivitas yang Anda buat',
-    'kadiv_helper_3' => 'Anda TIDAK DAPAT menghapus aktivitas setelah dibuat',
-    'kadiv_helper_4' => 'Untuk monitoring aktivitas, gunakan menu',
-    'kadiv_helper_link' => 'Daftar Aktivitas',
-
-    'kabag_pgb_helper_title' => '💡 Info untuk Kabag PGB',
-    'kabag_pgb_helper_text' => 'Anda dapat membuat aktivitas untuk project PGB yang Anda tangani sebagai PIC. Anda dapat mengedit dan menghapus aktivitas yang Anda buat sendiri.',
-
-    'perizinan_helper_title' => '📋 Info untuk PKJ',
-    'perizinan_helper_text' => 'Anda dapat membuat aktivitas untuk semua project PKJ. Anda dapat mengedit dan menghapus aktivitas yang Anda buat sendiri.',
-
-    'karyawan_helper_title' => '👤 Info untuk PGB Staff',
-    'karyawan_helper_text' => 'Anda dapat membuat aktivitas untuk project yang Anda ditugaskan sebagai PIC. Anda dapat mengedit dan menghapus aktivitas yang Anda buat sendiri.',
-
-
-    'all_activities_pkj' => 'Semua Aktivitas PKJ',
-    'all_activities_pgb' => 'Semua Aktivitas PGB',
-
-    'no_project_assigned' => 'Anda belum memiliki project yang ditugaskan. Silakan hubungi Kepala Bagian untuk assignment project terlebih dahulu.',
-
-    // Activity Types
-    'activity_type_meeting' => 'Meeting',
-    'activity_type_coding' => 'Coding',
-    'activity_type_documentation' => 'Dokumentasi',
-    'activity_type_support' => 'Support',
+    // Di bagian form
+    'select_project' => 'Pilih Project',
+    'no_project_yet' => 'Belum ada project yang sesuai',
+    'placeholder_project_label' => 'Nama Project yang Dituju',
+    'placeholder_project_placeholder' => 'contoh: Renovasi Kantor Denpasar',
+    'placeholder_project_help' => 'Masukkan nama project yang diharapkan akan dibuat nantinya',
 ];

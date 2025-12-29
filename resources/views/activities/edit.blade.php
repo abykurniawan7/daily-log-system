@@ -4,21 +4,28 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ __('activities.edit_activity') }}
             </h2>
-            <a href="{{ route('projects.show', $activity->project_id) }}" class="text-sm text-gray-600 hover:text-gray-900">
-                ← {{ __('activities.back_to_detail_project') }}
-            </a>
+            @if($activity->project_id)
+                <a href="{{ route('projects.show', $activity->project_id) }}" class="text-sm text-gray-600 hover:text-gray-900">
+                    ← {{ __('activities.back_to_detail_project') }}
+                </a>
+            @else
+                <a href="{{ route('activities.my-activities') }}" class="text-sm text-gray-600 hover:text-gray-900">
+                    ← Kembali ke My Activities
+                </a>
+            @endif
         </div>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Breadcrumb -->
-            <x-breadcrumb :items="[
+            <x-breadcrumb :items="array_filter([
                 ['label' => __('sidebar.dashboard'), 'url' => route('dashboard')],
-                ['label' => __('sidebar.projects'), 'url' => route('projects.index')],
-                ['label' => $activity->project->nama_project, 'url' => route('projects.show', $activity->project_id)],
+                $activity->project_id ? ['label' => __('sidebar.projects'), 'url' => route('projects.index')] : null,
+                $activity->project_id ? ['label' => $activity->project->nama_project, 'url' => route('projects.show', $activity->project_id)] : null,
+                !$activity->project_id ? ['label' => 'My Activities', 'url' => route('activities.my-activities')] : null,
                 ['label' => __('activities.edit_activity')]
-            ]" />
+            ])" />
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
                     <form action="{{ route('activities.update', $activity) }}" method="POST" enctype="multipart/form-data" data-loading="true">
@@ -26,7 +33,7 @@
                         @method('PUT')
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Project -->
+                            <<!-- Project -->
                             <div class="md:col-span-2">
                                 <label for="project_id" class="block text-sm font-medium text-gray-700">
                                     {{ __('activities.project_required') }} <span class="text-red-500">*</span>
@@ -36,12 +43,56 @@
                                     <option value="" disabled hidden>{{ __('activities.select_project') }}</option>
                                     @foreach($projects as $project)
                                         <option value="{{ $project->id }}" 
-                                            {{ old('project_id', $activity->project_id) == $project->id ? 'selected' : '' }}>
+                                            {{ (old('project_id', $activity->project_id) == $project->id) ? 'selected' : '' }}>
                                             {{ $project->nama_project }} ({{ $project->pemilikProject->nama_divisi }})
                                         </option>
                                     @endforeach
+                                    
+                                    {{-- ✅ OPSI: "No Project" - tersedia untuk semua role kecuali supervisi --}}
+                                    @if(auth()->user()->role !== 'supervisi')
+                                        <option value="no_project" 
+                                            {{ (old('project_id') === 'no_project' || (is_null(old('project_id')) && is_null($activity->project_id))) ? 'selected' : '' }}>
+                                            ✨ {{ __('activities.no_project_yet') }}
+                                        </option>
+                                    @endif
                                 </select>
+                                
+                                {{-- ✅ Info placeholder jika sedang di "no project" --}}
+                                @if(is_null($activity->project_id) && $activity->placeholder_project_name)
+                                    <p class="mt-1 text-xs text-blue-600 bg-blue-50 border border-blue-200 rounded px-3 py-2 flex items-start">
+                                        <svg class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        <span>
+                                            📂 Placeholder saat ini: <strong>{{ $activity->placeholder_project_name }}</strong>
+                                        </span>
+                                    </p>
+                                @endif
+                                
                                 @error('project_id')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            {{-- ✅ FIELD: Placeholder Project Name --}}
+                            <div id="placeholder-project-field" class="md:col-span-2" 
+                                style="display: {{ (old('project_id') === 'no_project' || (is_null(old('project_id')) && is_null($activity->project_id))) ? 'block' : 'none' }};">
+                                <label for="placeholder_project_name" class="block text-sm font-medium text-gray-700">
+                                    {{ __('activities.placeholder_project_label') }} <span class="text-red-500">*</span>
+                                </label>
+                                
+                                <input type="text" 
+                                    name="placeholder_project_name" 
+                                    id="placeholder_project_name"
+                                    value="{{ old('placeholder_project_name', $activity->placeholder_project_name) }}"
+                                    placeholder="{{ __('activities.placeholder_project_placeholder') }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('placeholder_project_name') border-red-500 @enderror">
+                                
+                                <p class="mt-1 text-xs text-gray-500">
+                                    {{ __('activities.placeholder_project_help') }}
+                                </p>
+                                
+                                @error('placeholder_project_name')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -410,15 +461,46 @@
                                 input.value = '';
                                 document.getElementById('file-preview').classList.add('hidden');
                             }
+
+                            // ✅ TAMBAHAN: Toggle placeholder field
+                            const projectSelect = document.getElementById('project_id');
+                            const placeholderField = document.getElementById('placeholder-project-field');
+                            const placeholderInput = document.getElementById('placeholder_project_name');
+
+                            function togglePlaceholderField() {
+                                if (projectSelect && projectSelect.value === 'no_project') {
+                                    placeholderField.style.display = 'block';
+                                    placeholderInput.required = true;
+                                } else if (projectSelect) {
+                                    placeholderField.style.display = 'none';
+                                    placeholderInput.required = false;
+                                    // Jangan clear value, biar bisa diedit
+                                }
+                            }
+
+                            if (projectSelect) {
+                                // Initial check
+                                togglePlaceholderField();
+                                
+                                // Listen perubahan dropdown
+                                projectSelect.addEventListener('change', togglePlaceholderField);
+                            }
                             </script>
                         </div>
 
                         <!-- Action Buttons -->
                         <div class="mt-6 flex items-center justify-end gap-4">
-                            <a href="{{ route('projects.show', $activity->project_id) }}" 
-                                class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition">
-                                {{ __('activities.cancel') }}
-                            </a>
+                            @if($activity->project_id)
+                                <a href="{{ route('projects.show', $activity->project_id) }}" 
+                                    class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition">
+                                    {{ __('activities.cancel') }}
+                                </a>
+                            @else
+                                <a href="{{ route('activities.my-activities') }}" 
+                                    class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition">
+                                    {{ __('activities.cancel') }}
+                                </a>
+                            @endif
                             <x-loading-button color="blue">
                                 {{ __('activities.update') }}
                             </x-loading-button>

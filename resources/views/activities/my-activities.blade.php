@@ -220,7 +220,27 @@
                                             {{ $activity->nama_aktivitas }}
                                         </td>
                                         <td class="px-4 py-3 text-sm text-gray-600">
-                                            <div>{{ $activity->project->nama_project }}</div>
+                                            <div>
+                                                @if($activity->project_id)
+                                                    {{-- Aktivitas dengan project real --}}
+                                                    <span class="badge badge-success px-3 py-2">
+                                                        <i class="fas fa-folder"></i> {{ $activity->project->nama_project }}
+                                                    </span>
+                                                    @if($activity->project->pemilikProject)
+                                                        <div class="text-xs text-gray-400 mt-1">
+                                                            {{ $activity->project->pemilikProject->nama_divisi }} - {{ $activity->project->picProyek->name }}
+                                                        </div>
+                                                    @endif
+                                                @else
+                                                    {{-- Aktivitas tanpa project (placeholder) --}}
+                                                    <span class="badge badge-warning px-3 py-2">
+                                                        <i class="fas fa-folder-open"></i> {{ $activity->placeholder_project_name ?? 'Tanpa Project' }}
+                                                    </span>
+                                                    <small class="d-block text-muted mt-1">
+                                                        <i class="fas fa-clock"></i> Menunggu assignment ke project
+                                                    </small>
+                                                @endif
+                                            </div>
                                             <div class="text-xs text-gray-400">{{ $activity->project->pemilikProject->nama_divisi ?? '-' }}</div>
                                         </td>
                                         <td class="px-4 py-3 text-sm text-gray-600">
@@ -317,8 +337,20 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                         </svg>
                                         <div class="flex-1">
-                                            <span class="text-gray-600 font-medium">{{ $activity->project->nama_project }}</span>
-                                            <p class="text-xs text-gray-400">{{ $activity->project->pemilikProject->nama_divisi ?? '-' }}</p>
+                                            @if($activity->project_id)
+                                                <span class="text-gray-600 font-medium">{{ $activity->project->nama_project }}</span>
+                                            @else
+                                                <span class="badge badge-warning">
+                                                    <i class="fas fa-folder-open"></i> {{ $activity->placeholder_project_name ?? 'Tanpa Project' }}
+                                                </span>
+                                            @endif
+                                            @if($activity->project_id)
+                                                <p class="text-xs text-gray-400">{{ $activity->project->pemilikProject->nama_divisi ?? '-' }}</p>
+                                            @else
+                                                <p class="text-xs text-muted">
+                                                    <i class="fas fa-clock"></i> Menunggu assignment
+                                                </p>
+                                            @endif
                                         </div>
                                     </div>
 
